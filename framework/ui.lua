@@ -87,18 +87,20 @@ local function setSetting(module, name, value)
 end
 
 local function enableModule(module)
+
+    setSetting(module, "Enabled", true)
+
     if module.Enable then
         module:Enable()
-    else
-        setSetting(module, "Enabled", true)
     end
 end
 
 local function disableModule(module)
+
+    setSetting(module, "Enabled", false)
+
     if module.Disable then
         module:Disable()
-    else
-        setSetting(module, "Enabled", false)
     end
 end
 
