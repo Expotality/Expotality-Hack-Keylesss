@@ -6,6 +6,8 @@ return {
     Description = "Changes the player's movement speed.",
 
     Settings = {
+        Enabled = false,
+
         Speed = {
             Type = "Number",
             Default = 500,
@@ -14,7 +16,9 @@ return {
         }
     },
 
-    Enable = function(settings)
+    Enable = function(self)
+
+        local settings = self.Settings
 
         task.spawn(function()
             while settings.Enabled do
@@ -33,7 +37,7 @@ return {
 
     end,
 
-    Disable = function()
+    Disable = function(self)
 
         local player = game.Players.LocalPlayer
         local character = player.Character
