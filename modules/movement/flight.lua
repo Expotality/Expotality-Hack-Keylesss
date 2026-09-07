@@ -6,20 +6,7 @@ Module.Description = "Fly freely using WASD."
 
 Module.Settings = {
     Enabled = false,
-
-    Speed = 50,
-    Acceleration = 0.5,
-    Deceleration = 1,
-
-    VerticalSpeed = 50,
-
-    ForwardKey = Enum.KeyCode.W,
-    BackwardKey = Enum.KeyCode.S,
-    LeftKey = Enum.KeyCode.A,
-    RightKey = Enum.KeyCode.D,
-
-    UpKey = Enum.KeyCode.Space,
-    DownKey = Enum.KeyCode.LeftControl
+    Speed = 50
 }
 
 local Players = game:GetService("Players")
