@@ -40,4 +40,10 @@ return {
         File = "modules/utilities/example.lua",
         Tab = "Utilities",
     },
+
+    {
+    Name = "Teleport",
+    File = "modules/movement/teleport.lua",
+    Tab = "Movement"
+},
 }
