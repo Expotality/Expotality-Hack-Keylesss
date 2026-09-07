@@ -162,23 +162,11 @@ local function updateFlight()
     end
 
     if MoveDirection.Magnitude > 0 then
-        MoveDirection = MoveDirection.Unit
+    MoveDirection = MoveDirection.Unit
+end
 
-        CurrentSpeed += Module.Settings.Acceleration
-
-        if CurrentSpeed > Module.Settings.Speed then
-            CurrentSpeed = Module.Settings.Speed
-        end
-    else
-        CurrentSpeed -= Module.Settings.Deceleration
-
-        if CurrentSpeed < 0 then
-            CurrentSpeed = 0
-        end
-    end
-
-    local HorizontalVelocity = MoveDirection * CurrentSpeed
-    local VerticalVelocity = Vector3.new(0, Vertical * Module.Settings.VerticalSpeed, 0)
+local HorizontalVelocity = MoveDirection * Module.Settings.Speed
+local VerticalVelocity = Vector3.new(0, Vertical * Module.Settings.Speed, 0)
 
     BodyVelocity.Velocity = HorizontalVelocity + VerticalVelocity
 
