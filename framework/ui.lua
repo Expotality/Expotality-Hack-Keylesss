@@ -2826,11 +2826,6 @@ function UI:Initialize(registry)
 
         customizationModules[1]._UI =
             self
-
-        if customizationModules[1].ApplyTheme then
-
-            customizationModules[1]:ApplyTheme()
-        end
     end
 
     return self
