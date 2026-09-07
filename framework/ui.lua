@@ -1455,48 +1455,7 @@ local function createModule(parent, module)
     return card
 end
 
-    --------------------------------------------------------
-    -- EXPAND / COLLAPSE
-    --------------------------------------------------------
-
-    local opened = false
-
-    local function updateCard()
-
-        if opened then
-
-            settingsFrame.Visible = true
-
-            settingsFrame.Size = UDim2.new(
-                1,
-                -24,
-                0,
-                settingsHeight
-            )
-
-            card.Size = UDim2.new(
-                1,
-                0,
-                0,
-                64 + settingsHeight
-            )
-
-            arrow.Text = "⌄"
-
-        else
-
-            settingsFrame.Visible = false
-
-            card.Size = UDim2.new(
-                1,
-                0,
-                0,
-                52
-            )
-
-            arrow.Text = "›"
-        end
-    end
+  
 
     header.MouseButton1Click:Connect(function()
 
