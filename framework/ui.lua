@@ -2443,7 +2443,7 @@ local function createTopBar()
         BackgroundTransparency = 1,
 
         Text =
-            "Roblox Hack Menu",
+            "Expotality's Suite",
 
         TextColor3 =
             TextColor,
