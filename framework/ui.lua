@@ -1,7 +1,7 @@
 local UI = {}
 
 UI.Name = "MainUI"
-UI.Version = "1.0.0"
+UI.Version = "1.1.0"
 
 UI.Settings = {
     ToggleKey = Enum.KeyCode.Insert,
@@ -14,7 +14,7 @@ UI.Settings = {
     Visible = true
 }
 
-UI.Modules = {}
+UI.Registry = nil
 UI.CurrentTab = nil
 
 local Players = game:GetService("Players")
@@ -37,10 +37,10 @@ end
 -- HELPERS
 ------------------------------------------------------------
 
-local function Create(className, properties)
-    local Object = Instance.new(className)
+local function Create(ClassName, Properties)
+    local Object = Instance.new(ClassName)
 
-    for Property, Value in pairs(properties or {}) do
+    for Property, Value in pairs(Properties or {}) do
         Object[Property] = Value
     end
 
@@ -85,6 +85,7 @@ local Main = Create("Frame", {
 
     AnchorPoint = Vector2.new(0.5, 0.5),
     Position = UDim2.fromScale(0.5, 0.5),
+
     Size = UDim2.fromOffset(
         UI.Settings.Width,
         UI.Settings.Height
@@ -113,7 +114,7 @@ local TopBar = Create("Frame", {
 
 AddCorner(TopBar, 10)
 
-local TopBarCover = Create("Frame", {
+Create("Frame", {
     Parent = TopBar,
 
     Position = UDim2.new(0, 0, 1, -10),
@@ -123,7 +124,7 @@ local TopBarCover = Create("Frame", {
     BorderSizePixel = 0
 })
 
-local Title = Create("TextLabel", {
+Create("TextLabel", {
     Parent = TopBar,
 
     Position = UDim2.fromOffset(18, 0),
@@ -140,7 +141,7 @@ local Title = Create("TextLabel", {
     TextXAlignment = Enum.TextXAlignment.Left
 })
 
-local Version = Create("TextLabel", {
+Create("TextLabel", {
     Parent = TopBar,
 
     Position = UDim2.fromOffset(110, 0),
@@ -149,7 +150,7 @@ local Version = Create("TextLabel", {
     BackgroundTransparency = 1,
 
     Font = Enum.Font.Gotham,
-    Text = "v1.0",
+    Text = "v1.1",
 
     TextColor3 = Color3.fromRGB(120, 120, 130),
     TextSize = 12,
@@ -166,6 +167,7 @@ local CloseButton = Create("TextButton", {
 
     AnchorPoint = Vector2.new(1, 0.5),
     Position = UDim2.new(1, -12, 0.5, 0),
+
     Size = UDim2.fromOffset(32, 32),
 
     BackgroundColor3 = Color3.fromRGB(35, 35, 42),
@@ -202,7 +204,7 @@ local Sidebar = Create("Frame", {
     BorderSizePixel = 0
 })
 
-local SidebarLayout = Create("UIListLayout", {
+Create("UIListLayout", {
     Parent = Sidebar,
 
     Padding = UDim.new(0, 5),
@@ -210,7 +212,7 @@ local SidebarLayout = Create("UIListLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder
 })
 
-local SidebarPadding = Create("UIPadding", {
+Create("UIPadding", {
     Parent = Sidebar,
 
     PaddingTop = UDim.new(0, 14),
@@ -233,7 +235,7 @@ local Content = Create("Frame", {
     BorderSizePixel = 0
 })
 
-local ContentPadding = Create("UIPadding", {
+Create("UIPadding", {
     Parent = Content,
 
     PaddingTop = UDim.new(0, 20),
@@ -243,7 +245,7 @@ local ContentPadding = Create("UIPadding", {
 })
 
 ------------------------------------------------------------
--- TAB SYSTEM
+-- TABS
 ------------------------------------------------------------
 
 local Tabs = {
@@ -258,6 +260,7 @@ local TabButtons = {}
 local TabFrames = {}
 
 local function CreateTabButton(TabName, Order)
+
     local Button = Create("TextButton", {
         Name = TabName .. "Tab",
         Parent = Sidebar,
@@ -282,7 +285,7 @@ local function CreateTabButton(TabName, Order)
 
     AddCorner(Button, 6)
 
-    local Padding = Create("UIPadding", {
+    Create("UIPadding", {
         Parent = Button,
         PaddingLeft = UDim.new(0, 12)
     })
@@ -293,6 +296,7 @@ local function CreateTabButton(TabName, Order)
 end
 
 local function CreateTabFrame(TabName)
+
     local Frame = Create("ScrollingFrame", {
         Name = TabName .. "Frame",
         Parent = Content,
@@ -318,10 +322,12 @@ local function CreateTabFrame(TabName)
     })
 
     Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+
         Frame.CanvasSize = UDim2.fromOffset(
             0,
             Layout.AbsoluteContentSize.Y + 10
         )
+
     end)
 
     TabFrames[TabName] = Frame
@@ -330,12 +336,201 @@ local function CreateTabFrame(TabName)
 end
 
 for Index, TabName in ipairs(Tabs) do
+
     local Button = CreateTabButton(TabName, Index)
     local Frame = CreateTabFrame(TabName)
 
     Button.MouseButton1Click:Connect(function()
         UI:SelectTab(TabName)
     end)
+
+end
+
+------------------------------------------------------------
+-- MODULE CARD
+------------------------------------------------------------
+
+local function CreateModuleCard(Module)
+
+    local Tab = Module.Tab or "Utilities"
+    local Frame = TabFrames[Tab]
+
+    if not Frame then
+        return
+    end
+
+    local Card = Create("Frame", {
+        Name = Module.Name .. "Card",
+        Parent = Frame,
+
+        Size = UDim2.new(1, -5, 0, 64),
+
+        BackgroundColor3 = Color3.fromRGB(26, 26, 32),
+        BorderSizePixel = 0
+    })
+
+    AddCorner(Card, 7)
+    AddStroke(Card, 1, 0.8)
+
+    --------------------------------------------------------
+    -- MODULE NAME
+    --------------------------------------------------------
+
+    local Name = Create("TextLabel", {
+        Parent = Card,
+
+        Position = UDim2.fromOffset(14, 8),
+        Size = UDim2.new(1, -120, 0, 22),
+
+        BackgroundTransparency = 1,
+
+        Font = Enum.Font.GothamSemibold,
+        Text = Module.Name,
+
+        TextColor3 = Color3.fromRGB(235, 235, 240),
+        TextSize = 14,
+
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    --------------------------------------------------------
+    -- DESCRIPTION
+    --------------------------------------------------------
+
+    if Module.Description then
+
+        Create("TextLabel", {
+            Parent = Card,
+
+            Position = UDim2.fromOffset(14, 31),
+            Size = UDim2.new(1, -120, 0, 18),
+
+            BackgroundTransparency = 1,
+
+            Font = Enum.Font.Gotham,
+            Text = Module.Description,
+
+            TextColor3 = Color3.fromRGB(120, 120, 130),
+            TextSize = 11,
+
+            TextXAlignment = Enum.TextXAlignment.Left
+        })
+
+    end
+
+    --------------------------------------------------------
+    -- TOGGLE
+    --------------------------------------------------------
+
+    local Toggle = Create("TextButton", {
+        Parent = Card,
+
+        AnchorPoint = Vector2.new(1, 0.5),
+        Position = UDim2.new(1, -14, 0.5, 0),
+
+        Size = UDim2.fromOffset(58, 28),
+
+        BackgroundColor3 = Color3.fromRGB(42, 42, 49),
+        BorderSizePixel = 0,
+
+        AutoButtonColor = false,
+
+        Font = Enum.Font.GothamBold,
+        Text = "OFF",
+
+        TextColor3 = Color3.fromRGB(150, 150, 160),
+        TextSize = 11
+    })
+
+    AddCorner(Toggle, 6)
+
+    local function UpdateToggle()
+
+        local Enabled = false
+
+        if Module.Settings then
+            Enabled = Module.Settings.Enabled == true
+        end
+
+        if Enabled then
+
+            Toggle.BackgroundColor3 = UI.Settings.AccentColor
+            Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Toggle.Text = "ON"
+
+        else
+
+            Toggle.BackgroundColor3 = Color3.fromRGB(42, 42, 49)
+            Toggle.TextColor3 = Color3.fromRGB(150, 150, 160)
+            Toggle.Text = "OFF"
+
+        end
+
+    end
+
+    Toggle.MouseButton1Click:Connect(function()
+
+        if UI.Registry then
+            UI.Registry:Toggle(Module.Name)
+        elseif Module.Enable and Module.Disable then
+
+            if Module.Settings and Module.Settings.Enabled then
+                Module:Disable()
+            else
+                Module:Enable()
+            end
+
+        end
+
+        UpdateToggle()
+
+    end)
+
+    UpdateToggle()
+
+    return Card
+end
+
+------------------------------------------------------------
+-- INITIALIZE
+------------------------------------------------------------
+
+function UI:Initialize(Registry)
+
+    self.Registry = Registry
+
+    if not Registry then
+        warn("[UI] Registry was not provided.")
+        return false
+    end
+
+    --------------------------------------------------------
+    -- CREATE MODULE CARDS
+    --------------------------------------------------------
+
+    for TabName, Frame in pairs(TabFrames) do
+
+        for _, Child in ipairs(Frame:GetChildren()) do
+            if Child:IsA("Frame") then
+                Child:Destroy()
+            end
+        end
+
+    end
+
+    for TabName, Modules in pairs(Registry.ByTab) do
+
+        for _, Module in ipairs(Modules) do
+            CreateModuleCard(Module)
+        end
+
+    end
+
+    self:SelectTab("Visuals")
+
+    print("[UI] Initialized with registered modules.")
+
+    return true
 end
 
 ------------------------------------------------------------
@@ -343,6 +538,7 @@ end
 ------------------------------------------------------------
 
 function UI:SelectTab(TabName)
+
     if not TabFrames[TabName] then
         return
     end
@@ -354,14 +550,21 @@ function UI:SelectTab(TabName)
     end
 
     for Name, Button in pairs(TabButtons) do
+
         if Name == TabName then
+
             Button.BackgroundColor3 = UI.Settings.AccentColor
             Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+
         else
+
             Button.BackgroundColor3 = Color3.fromRGB(15, 15, 19)
             Button.TextColor3 = Color3.fromRGB(145, 145, 155)
+
         end
+
     end
+
 end
 
 ------------------------------------------------------------
@@ -373,21 +576,28 @@ local DragStart = nil
 local StartPosition = nil
 
 TopBar.InputBegan:Connect(function(Input)
+
     if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+
         Dragging = true
 
         DragStart = Input.Position
         StartPosition = Main.Position
 
         Input.Changed:Connect(function()
+
             if Input.UserInputState == Enum.UserInputState.End then
                 Dragging = false
             end
+
         end)
+
     end
+
 end)
 
 UserInputService.InputChanged:Connect(function(Input)
+
     if not Dragging then
         return
     end
@@ -399,12 +609,15 @@ UserInputService.InputChanged:Connect(function(Input)
     local Delta = Input.Position - DragStart
 
     Main.Position = UDim2.new(
+
         StartPosition.X.Scale,
         StartPosition.X.Offset + Delta.X,
 
         StartPosition.Y.Scale,
         StartPosition.Y.Offset + Delta.Y
+
     )
+
 end)
 
 ------------------------------------------------------------
@@ -412,18 +625,22 @@ end)
 ------------------------------------------------------------
 
 UserInputService.InputBegan:Connect(function(Input, GameProcessed)
+
     if GameProcessed then
         return
     end
 
     if Input.KeyCode == UI.Settings.ToggleKey then
+
         UI.Settings.Visible = not UI.Settings.Visible
         ScreenGui.Enabled = UI.Settings.Visible
+
     end
+
 end)
 
 ------------------------------------------------------------
--- INITIAL TAB
+-- INITIAL STATE
 ------------------------------------------------------------
 
 UI:SelectTab("Visuals")
