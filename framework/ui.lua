@@ -1,648 +1,539 @@
-local UI = {}
+local Module = {}
 
-UI.Name = "MainUI"
-UI.Version = "1.1.0"
+Module.Name = "ESP"
+Module.Tab = "Visuals"
+Module.Description = "Simple player ESP."
 
-UI.Settings = {
-    ToggleKey = Enum.KeyCode.Insert,
+Module.Settings = {
+    Enabled = false,
 
-    AccentColor = Color3.fromRGB(90, 140, 255),
+    -- Box
+    BoxESP = false,
+    BoxStyle = "Corner",
+    BoxColor = Color3.fromRGB(255, 25, 25),
 
-    Width = 760,
-    Height = 500,
+    -- Chams
+    ChamsEnabled = false,
+    ChamsFillColor = Color3.fromRGB(255, 0, 0),
+    ChamsOutlineColor = Color3.fromRGB(255, 255, 255),
+    ChamsTransparency = 0.5,
 
-    Visible = true
+    -- Username
+    Username = false,
+    UsernameColor = Color3.fromRGB(255, 255, 255),
+
+    -- Distance
+    StudsAway = true,
+    DistanceColor = Color3.fromRGB(200, 200, 200),
 }
-
-UI.Registry = nil
-UI.CurrentTab = nil
 
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-------------------------------------------------------------
--- CLEANUP
-------------------------------------------------------------
+local ESPObjects = {}
+local CharacterConnections = {}
 
-local Existing = PlayerGui:FindFirstChild("RobloxHackMenu")
-
-if Existing then
-    Existing:Destroy()
+local function getCharacter(player)
+    return player.Character
 end
 
-------------------------------------------------------------
--- HELPERS
-------------------------------------------------------------
+local function getRoot(player)
+    local character = getCharacter(player)
 
-local function Create(ClassName, Properties)
-    local Object = Instance.new(ClassName)
-
-    for Property, Value in pairs(Properties or {}) do
-        Object[Property] = Value
+    if not character then
+        return nil
     end
 
-    return Object
+    return character:FindFirstChild("HumanoidRootPart")
+        or character:FindFirstChild("Torso")
 end
 
-local function AddCorner(Object, Radius)
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, Radius or 6)
-    Corner.Parent = Object
+local function getHumanoid(player)
+    local character = getCharacter(player)
 
-    return Corner
+    if not character then
+        return nil
+    end
+
+    return character:FindFirstChildOfClass("Humanoid")
 end
 
-local function AddStroke(Object, Thickness, Transparency)
-    local Stroke = Instance.new("UIStroke")
-    Stroke.Thickness = Thickness or 1
-    Stroke.Transparency = Transparency or 0
-    Stroke.Parent = Object
+local function createLine()
+    local line = Drawing.new("Line")
 
-    return Stroke
+    line.Visible = false
+    line.Thickness = 1
+    line.Transparency = 1
+
+    return line
 end
 
-------------------------------------------------------------
--- SCREEN GUI
-------------------------------------------------------------
-
-local ScreenGui = Create("ScreenGui", {
-    Name = "RobloxHackMenu",
-    ResetOnSpawn = false,
-    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    Parent = PlayerGui
-})
-
-------------------------------------------------------------
--- MAIN WINDOW
-------------------------------------------------------------
-
-local Main = Create("Frame", {
-    Name = "Main",
-    Parent = ScreenGui,
-
-    AnchorPoint = Vector2.new(0.5, 0.5),
-    Position = UDim2.fromScale(0.5, 0.5),
-
-    Size = UDim2.fromOffset(
-        UI.Settings.Width,
-        UI.Settings.Height
-    ),
-
-    BackgroundColor3 = Color3.fromRGB(18, 18, 22),
-    BorderSizePixel = 0
-})
-
-AddCorner(Main, 10)
-AddStroke(Main, 1, 0.65)
-
-------------------------------------------------------------
--- TOP BAR
-------------------------------------------------------------
-
-local TopBar = Create("Frame", {
-    Name = "TopBar",
-    Parent = Main,
-
-    Size = UDim2.new(1, 0, 0, 55),
-
-    BackgroundColor3 = Color3.fromRGB(23, 23, 28),
-    BorderSizePixel = 0
-})
-
-AddCorner(TopBar, 10)
-
-Create("Frame", {
-    Parent = TopBar,
-
-    Position = UDim2.new(0, 0, 1, -10),
-    Size = UDim2.new(1, 0, 0, 10),
-
-    BackgroundColor3 = Color3.fromRGB(23, 23, 28),
-    BorderSizePixel = 0
-})
-
-Create("TextLabel", {
-    Parent = TopBar,
-
-    Position = UDim2.fromOffset(18, 0),
-    Size = UDim2.new(0, 250, 1, 0),
-
-    BackgroundTransparency = 1,
-
-    Font = Enum.Font.GothamBold,
-    Text = "◈  MENU",
-
-    TextColor3 = Color3.fromRGB(240, 240, 245),
-    TextSize = 17,
-
-    TextXAlignment = Enum.TextXAlignment.Left
-})
-
-Create("TextLabel", {
-    Parent = TopBar,
-
-    Position = UDim2.fromOffset(110, 0),
-    Size = UDim2.fromOffset(100, 55),
-
-    BackgroundTransparency = 1,
-
-    Font = Enum.Font.Gotham,
-    Text = "v1.1",
-
-    TextColor3 = Color3.fromRGB(120, 120, 130),
-    TextSize = 12,
-
-    TextXAlignment = Enum.TextXAlignment.Left
-})
-
-------------------------------------------------------------
--- CLOSE BUTTON
-------------------------------------------------------------
-
-local CloseButton = Create("TextButton", {
-    Parent = TopBar,
-
-    AnchorPoint = Vector2.new(1, 0.5),
-    Position = UDim2.new(1, -12, 0.5, 0),
-
-    Size = UDim2.fromOffset(32, 32),
-
-    BackgroundColor3 = Color3.fromRGB(35, 35, 42),
-    BorderSizePixel = 0,
-
-    AutoButtonColor = false,
-
-    Font = Enum.Font.GothamBold,
-    Text = "×",
-
-    TextColor3 = Color3.fromRGB(210, 210, 215),
-    TextSize = 20
-})
-
-AddCorner(CloseButton, 6)
-
-CloseButton.MouseButton1Click:Connect(function()
-    UI.Settings.Visible = false
-    ScreenGui.Enabled = false
-end)
-
-------------------------------------------------------------
--- SIDEBAR
-------------------------------------------------------------
-
-local Sidebar = Create("Frame", {
-    Name = "Sidebar",
-    Parent = Main,
-
-    Position = UDim2.fromOffset(0, 55),
-    Size = UDim2.new(0, 150, 1, -55),
-
-    BackgroundColor3 = Color3.fromRGB(15, 15, 19),
-    BorderSizePixel = 0
-})
-
-Create("UIListLayout", {
-    Parent = Sidebar,
-
-    Padding = UDim.new(0, 5),
-
-    SortOrder = Enum.SortOrder.LayoutOrder
-})
-
-Create("UIPadding", {
-    Parent = Sidebar,
-
-    PaddingTop = UDim.new(0, 14),
-    PaddingLeft = UDim.new(0, 10),
-    PaddingRight = UDim.new(0, 10)
-})
-
-------------------------------------------------------------
--- CONTENT
-------------------------------------------------------------
-
-local Content = Create("Frame", {
-    Name = "Content",
-    Parent = Main,
-
-    Position = UDim2.fromOffset(150, 55),
-    Size = UDim2.new(1, -150, 1, -55),
-
-    BackgroundColor3 = Color3.fromRGB(20, 20, 24),
-    BorderSizePixel = 0
-})
-
-Create("UIPadding", {
-    Parent = Content,
-
-    PaddingTop = UDim.new(0, 20),
-    PaddingLeft = UDim.new(0, 22),
-    PaddingRight = UDim.new(0, 22),
-    PaddingBottom = UDim.new(0, 20)
-})
-
-------------------------------------------------------------
--- TABS
-------------------------------------------------------------
-
-local Tabs = {
-    "Visuals",
-    "Movement",
-    "Events",
-    "Customization",
-    "Utilities"
-}
-
-local TabButtons = {}
-local TabFrames = {}
-
-local function CreateTabButton(TabName, Order)
-
-    local Button = Create("TextButton", {
-        Name = TabName .. "Tab",
-        Parent = Sidebar,
-
-        Size = UDim2.new(1, 0, 0, 38),
-
-        BackgroundColor3 = Color3.fromRGB(15, 15, 19),
-        BorderSizePixel = 0,
-
-        AutoButtonColor = false,
-
-        LayoutOrder = Order,
-
-        Font = Enum.Font.GothamMedium,
-        Text = TabName,
-
-        TextColor3 = Color3.fromRGB(145, 145, 155),
-        TextSize = 13,
-
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    AddCorner(Button, 6)
-
-    Create("UIPadding", {
-        Parent = Button,
-        PaddingLeft = UDim.new(0, 12)
-    })
-
-    TabButtons[TabName] = Button
-
-    return Button
+local function createText()
+    local text = Drawing.new("Text")
+
+    text.Visible = false
+    text.Center = true
+    text.Outline = true
+    text.Size = 14
+    text.Transparency = 1
+
+    return text
 end
 
-local function CreateTabFrame(TabName)
+local function createBox()
+    local box = {
+        Top = createLine(),
+        Bottom = createLine(),
+        Left = createLine(),
+        Right = createLine(),
 
-    local Frame = Create("ScrollingFrame", {
-        Name = TabName .. "Frame",
-        Parent = Content,
+        -- Corner box uses the same four lines.
+        -- Full box and corner box are handled by visibility/coordinates.
+    }
 
-        Size = UDim2.fromScale(1, 1),
-
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-
-        ScrollBarThickness = 3,
-
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-
-        Visible = false
-    })
-
-    local Layout = Create("UIListLayout", {
-        Parent = Frame,
-
-        Padding = UDim.new(0, 10),
-
-        SortOrder = Enum.SortOrder.LayoutOrder
-    })
-
-    Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-
-        Frame.CanvasSize = UDim2.fromOffset(
-            0,
-            Layout.AbsoluteContentSize.Y + 10
-        )
-
-    end)
-
-    TabFrames[TabName] = Frame
-
-    return Frame
+    return box
 end
 
-for Index, TabName in ipairs(Tabs) do
-
-    local Button = CreateTabButton(TabName, Index)
-    local Frame = CreateTabFrame(TabName)
-
-    Button.MouseButton1Click:Connect(function()
-        UI:SelectTab(TabName)
-    end)
-
+local function hideDrawing(object)
+    if object then
+        object.Visible = false
+    end
 end
 
-------------------------------------------------------------
--- MODULE CARD
-------------------------------------------------------------
+local function hideESP(player)
+    local data = ESPObjects[player]
 
-local function CreateModuleCard(Module)
-
-    local Tab = Module.Tab or "Utilities"
-    local Frame = TabFrames[Tab]
-
-    if not Frame then
+    if not data then
         return
     end
 
-    local Card = Create("Frame", {
-        Name = Module.Name .. "Card",
-        Parent = Frame,
-
-        Size = UDim2.new(1, -5, 0, 64),
-
-        BackgroundColor3 = Color3.fromRGB(26, 26, 32),
-        BorderSizePixel = 0
-    })
-
-    AddCorner(Card, 7)
-    AddStroke(Card, 1, 0.8)
-
-    --------------------------------------------------------
-    -- MODULE NAME
-    --------------------------------------------------------
-
-    local Name = Create("TextLabel", {
-        Parent = Card,
-
-        Position = UDim2.fromOffset(14, 8),
-        Size = UDim2.new(1, -120, 0, 22),
-
-        BackgroundTransparency = 1,
-
-        Font = Enum.Font.GothamSemibold,
-        Text = Module.Name,
-
-        TextColor3 = Color3.fromRGB(235, 235, 240),
-        TextSize = 14,
-
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    --------------------------------------------------------
-    -- DESCRIPTION
-    --------------------------------------------------------
-
-    if Module.Description then
-
-        Create("TextLabel", {
-            Parent = Card,
-
-            Position = UDim2.fromOffset(14, 31),
-            Size = UDim2.new(1, -120, 0, 18),
-
-            BackgroundTransparency = 1,
-
-            Font = Enum.Font.Gotham,
-            Text = Module.Description,
-
-            TextColor3 = Color3.fromRGB(120, 120, 130),
-            TextSize = 11,
-
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-
+    if data.Box then
+        for _, line in pairs(data.Box) do
+            hideDrawing(line)
+        end
     end
 
-    --------------------------------------------------------
-    -- TOGGLE
-    --------------------------------------------------------
+    hideDrawing(data.Username)
+    hideDrawing(data.Distance)
 
-    local Toggle = Create("TextButton", {
-        Parent = Card,
-
-        AnchorPoint = Vector2.new(1, 0.5),
-        Position = UDim2.new(1, -14, 0.5, 0),
-
-        Size = UDim2.fromOffset(58, 28),
-
-        BackgroundColor3 = Color3.fromRGB(42, 42, 49),
-        BorderSizePixel = 0,
-
-        AutoButtonColor = false,
-
-        Font = Enum.Font.GothamBold,
-        Text = "OFF",
-
-        TextColor3 = Color3.fromRGB(150, 150, 160),
-        TextSize = 11
-    })
-
-    AddCorner(Toggle, 6)
-
-    local function UpdateToggle()
-
-        local Enabled = false
-
-        if Module.Settings then
-            Enabled = Module.Settings.Enabled == true
-        end
-
-        if Enabled then
-
-            Toggle.BackgroundColor3 = UI.Settings.AccentColor
-            Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Toggle.Text = "ON"
-
-        else
-
-            Toggle.BackgroundColor3 = Color3.fromRGB(42, 42, 49)
-            Toggle.TextColor3 = Color3.fromRGB(150, 150, 160)
-            Toggle.Text = "OFF"
-
-        end
-
+    if data.Highlight then
+        data.Highlight.Enabled = false
     end
-
-    Toggle.MouseButton1Click:Connect(function()
-
-        if UI.Registry then
-            UI.Registry:Toggle(Module.Name)
-        elseif Module.Enable and Module.Disable then
-
-            if Module.Settings and Module.Settings.Enabled then
-                Module:Disable()
-            else
-                Module:Enable()
-            end
-
-        end
-
-        UpdateToggle()
-
-    end)
-
-    UpdateToggle()
-
-    return Card
 end
 
-------------------------------------------------------------
--- INITIALIZE
-------------------------------------------------------------
+local function removeESP(player)
+    local data = ESPObjects[player]
 
-function UI:Initialize(Registry)
+    if not data then
+        return
+    end
 
-    self.Registry = Registry
+    if data.Box then
+        for _, line in pairs(data.Box) do
+            pcall(function()
+                line:Remove()
+            end)
+        end
+    end
 
-    if not Registry then
-        warn("[UI] Registry was not provided.")
+    if data.Username then
+        pcall(function()
+            data.Username:Remove()
+        end)
+    end
+
+    if data.Distance then
+        pcall(function()
+            data.Distance:Remove()
+        end)
+    end
+
+    if data.Highlight then
+        pcall(function()
+            data.Highlight:Destroy()
+        end)
+    end
+
+    ESPObjects[player] = nil
+end
+
+local function createESP(player)
+    if player == LocalPlayer then
+        return
+    end
+
+    if ESPObjects[player] then
+        return ESPObjects[player]
+    end
+
+    local data = {
+        Box = createBox(),
+        Username = createText(),
+        Distance = createText(),
+        Highlight = nil,
+    }
+
+    ESPObjects[player] = data
+
+    local character = player.Character
+
+    if character then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ESP_Chams"
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Enabled = false
+        highlight.FillTransparency = Module.Settings.ChamsTransparency
+        highlight.OutlineTransparency = 0
+        highlight.FillColor = Module.Settings.ChamsFillColor
+        highlight.OutlineColor = Module.Settings.ChamsOutlineColor
+        highlight.Parent = character
+
+        data.Highlight = highlight
+    end
+
+    return data
+end
+
+local function updateHighlight(player, data, character)
+    if not data.Highlight or data.Highlight.Parent ~= character then
+        if data.Highlight then
+            pcall(function()
+                data.Highlight:Destroy()
+            end)
+        end
+
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ESP_Chams"
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.FillTransparency = Module.Settings.ChamsTransparency
+        highlight.OutlineTransparency = 0
+        highlight.FillColor = Module.Settings.ChamsFillColor
+        highlight.OutlineColor = Module.Settings.ChamsOutlineColor
+        highlight.Parent = character
+
+        data.Highlight = highlight
+    end
+
+    local highlight = data.Highlight
+
+    highlight.Enabled = Module.Settings.Enabled
+        and Module.Settings.ChamsEnabled
+
+    highlight.FillColor = Module.Settings.ChamsFillColor
+    highlight.OutlineColor = Module.Settings.ChamsOutlineColor
+    highlight.FillTransparency = Module.Settings.ChamsTransparency
+    highlight.OutlineTransparency = 0
+end
+
+local function drawCornerBox(box, x, y, width, height)
+    local cornerX = width * 0.25
+    local cornerY = height * 0.25
+
+    -- Top left
+    box.Top.From = Vector2.new(x, y)
+    box.Top.To = Vector2.new(x + cornerX, y)
+
+    box.Left.From = Vector2.new(x, y)
+    box.Left.To = Vector2.new(x, y + cornerY)
+
+    -- Top right
+    -- Stored using Bottom/Right temporarily for corner segments
+    box.Bottom.From = Vector2.new(x + width - cornerX, y)
+    box.Bottom.To = Vector2.new(x + width, y)
+
+    box.Right.From = Vector2.new(x + width, y)
+    box.Right.To = Vector2.new(x + width, y + cornerY)
+end
+
+local function drawFullBox(box, x, y, width, height)
+    box.Top.From = Vector2.new(x, y)
+    box.Top.To = Vector2.new(x + width, y)
+
+    box.Bottom.From = Vector2.new(x, y + height)
+    box.Bottom.To = Vector2.new(x + width, y + height)
+
+    box.Left.From = Vector2.new(x, y)
+    box.Left.To = Vector2.new(x, y + height)
+
+    box.Right.From = Vector2.new(x + width, y)
+    box.Right.To = Vector2.new(x + width, y + height)
+end
+
+local function setBoxVisible(box, visible)
+    for _, line in pairs(box) do
+        line.Visible = visible
+    end
+end
+
+local function updateBox(player, data, root)
+    if not Module.Settings.BoxESP then
+        setBoxVisible(data.Box, false)
+        return
+    end
+
+    local camera = workspace.CurrentCamera
+
+    if not camera then
+        setBoxVisible(data.Box, false)
+        return
+    end
+
+    local character = player.Character
+
+    if not character then
+        setBoxVisible(data.Box, false)
+        return
+    end
+
+    local humanoid = getHumanoid(player)
+
+    if not humanoid or humanoid.Health <= 0 then
+        setBoxVisible(data.Box, false)
+        return
+    end
+
+    local cf, size = character:GetBoundingBox()
+
+    local topWorld = cf.Position + Vector3.new(0, size.Y / 2, 0)
+    local bottomWorld = cf.Position - Vector3.new(0, size.Y / 2, 0)
+
+    local topScreen, topVisible = camera:WorldToViewportPoint(topWorld)
+    local bottomScreen, bottomVisible = camera:WorldToViewportPoint(bottomWorld)
+
+    if not topVisible and not bottomVisible then
+        setBoxVisible(data.Box, false)
+        return
+    end
+
+    local height = math.abs(bottomScreen.Y - topScreen.Y)
+
+    if height <= 2 then
+        setBoxVisible(data.Box, false)
+        return
+    end
+
+    local width = height * 0.55
+
+    local x = topScreen.X - width / 2
+    local y = topScreen.Y
+
+    if Module.Settings.BoxStyle == "Full" then
+        drawFullBox(data.Box, x, y, width, height)
+    else
+        drawCornerBox(data.Box, x, y, width, height)
+    end
+
+    for _, line in pairs(data.Box) do
+        line.Color = Module.Settings.BoxColor
+        line.Thickness = 1
+        line.Transparency = 1
+        line.Visible = true
+    end
+end
+
+local function updateText(player, data, root)
+    local camera = workspace.CurrentCamera
+
+    if not camera then
+        hideDrawing(data.Username)
+        hideDrawing(data.Distance)
+        return
+    end
+
+    local screenPosition, visible = camera:WorldToViewportPoint(
+        root.Position + Vector3.new(0, 3.5, 0)
+    )
+
+    if not visible then
+        hideDrawing(data.Username)
+        hideDrawing(data.Distance)
+        return
+    end
+
+    local distance = (camera.CFrame.Position - root.Position).Magnitude
+
+    if Module.Settings.Username then
+        data.Username.Text = player.DisplayName
+        data.Username.Position = Vector2.new(
+            screenPosition.X,
+            screenPosition.Y
+        )
+        data.Username.Color = Module.Settings.UsernameColor
+        data.Username.Visible = true
+    else
+        hideDrawing(data.Username)
+    end
+
+    if Module.Settings.StudsAway then
+        data.Distance.Text = string.format(
+            "[%d studs]",
+            math.floor(distance + 0.5)
+        )
+
+        data.Distance.Position = Vector2.new(
+            screenPosition.X,
+            screenPosition.Y + 16
+        )
+
+        data.Distance.Color = Module.Settings.DistanceColor
+        data.Distance.Visible = true
+    else
+        hideDrawing(data.Distance)
+    end
+end
+
+local function updatePlayer(player)
+    if player == LocalPlayer then
+        return
+    end
+
+    local data = createESP(player)
+
+    if not Module.Settings.Enabled then
+        hideESP(player)
+        return
+    end
+
+    local character = player.Character
+    local root = getRoot(player)
+    local humanoid = getHumanoid(player)
+
+    if not character or not root or not humanoid or humanoid.Health <= 0 then
+        hideESP(player)
+        return
+    end
+
+    if character.Parent == nil then
+        hideESP(player)
+        return
+    end
+
+    updateHighlight(player, data, character)
+    updateBox(player, data, root)
+    updateText(player, data, root)
+end
+
+local function updateAll()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            updatePlayer(player)
+        end
+    end
+end
+
+local function setupPlayer(player)
+    if player == LocalPlayer then
+        return
+    end
+
+    createESP(player)
+
+    if CharacterConnections[player] then
+        CharacterConnections[player]:Disconnect()
+    end
+
+    CharacterConnections[player] = player.CharacterAdded:Connect(function(character)
+        task.wait(0.1)
+
+        local data = ESPObjects[player]
+
+        if not data then
+            return
+        end
+
+        if data.Highlight then
+            pcall(function()
+                data.Highlight:Destroy()
+            end)
+        end
+
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ESP_Chams"
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Enabled = false
+        highlight.FillTransparency = Module.Settings.ChamsTransparency
+        highlight.OutlineTransparency = 0
+        highlight.FillColor = Module.Settings.ChamsFillColor
+        highlight.OutlineColor = Module.Settings.ChamsOutlineColor
+        highlight.Parent = character
+
+        data.Highlight = highlight
+    end)
+end
+
+Players.PlayerAdded:Connect(setupPlayer)
+
+Players.PlayerRemoving:Connect(function(player)
+    if CharacterConnections[player] then
+        CharacterConnections[player]:Disconnect()
+        CharacterConnections[player] = nil
+    end
+
+    removeESP(player)
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+    setupPlayer(player)
+end
+
+local UpdateConnection = RunService.RenderStepped:Connect(updateAll)
+
+function Module:Enable()
+    self.Settings.Enabled = true
+end
+
+function Module:Disable()
+    self.Settings.Enabled = false
+
+    for player in pairs(ESPObjects) do
+        hideESP(player)
+    end
+end
+
+function Module:SetSetting(Name, Value)
+    if self.Settings[Name] == nil then
         return false
     end
 
-    --------------------------------------------------------
-    -- CREATE MODULE CARDS
-    --------------------------------------------------------
+    self.Settings[Name] = Value
 
-    for TabName, Frame in pairs(TabFrames) do
-
-        for _, Child in ipairs(Frame:GetChildren()) do
-            if Child:IsA("Frame") then
-                Child:Destroy()
-            end
+    if Name == "Enabled" then
+        if Value then
+            self:Enable()
+        else
+            self:Disable()
         end
-
     end
-
-    for TabName, Modules in pairs(Registry.ByTab) do
-
-        for _, Module in ipairs(Modules) do
-            CreateModuleCard(Module)
-        end
-
-    end
-
-    self:SelectTab("Visuals")
-
-    print("[UI] Initialized with registered modules.")
 
     return true
 end
 
-------------------------------------------------------------
--- TAB SELECTION
-------------------------------------------------------------
-
-function UI:SelectTab(TabName)
-
-    if not TabFrames[TabName] then
-        return
-    end
-
-    UI.CurrentTab = TabName
-
-    for Name, Frame in pairs(TabFrames) do
-        Frame.Visible = Name == TabName
-    end
-
-    for Name, Button in pairs(TabButtons) do
-
-        if Name == TabName then
-
-            Button.BackgroundColor3 = UI.Settings.AccentColor
-            Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-
-        else
-
-            Button.BackgroundColor3 = Color3.fromRGB(15, 15, 19)
-            Button.TextColor3 = Color3.fromRGB(145, 145, 155)
-
-        end
-
-    end
-
+function Module:GetSetting(Name)
+    return self.Settings[Name]
 end
 
-------------------------------------------------------------
--- DRAGGING
-------------------------------------------------------------
+function Module:GetSettings()
+    return self.Settings
+end
 
-local Dragging = false
-local DragStart = nil
-local StartPosition = nil
+function Module:Destroy()
+    self:Disable()
 
-TopBar.InputBegan:Connect(function(Input)
-
-    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-
-        Dragging = true
-
-        DragStart = Input.Position
-        StartPosition = Main.Position
-
-        Input.Changed:Connect(function()
-
-            if Input.UserInputState == Enum.UserInputState.End then
-                Dragging = false
-            end
-
-        end)
-
+    if UpdateConnection then
+        UpdateConnection:Disconnect()
+        UpdateConnection = nil
     end
 
-end)
-
-UserInputService.InputChanged:Connect(function(Input)
-
-    if not Dragging then
-        return
+    for player, connection in pairs(CharacterConnections) do
+        connection:Disconnect()
+        CharacterConnections[player] = nil
     end
 
-    if Input.UserInputType ~= Enum.UserInputType.MouseMovement then
-        return
+    for player in pairs(ESPObjects) do
+        removeESP(player)
     end
+end
 
-    local Delta = Input.Position - DragStart
-
-    Main.Position = UDim2.new(
-
-        StartPosition.X.Scale,
-        StartPosition.X.Offset + Delta.X,
-
-        StartPosition.Y.Scale,
-        StartPosition.Y.Offset + Delta.Y
-
-    )
-
-end)
-
-------------------------------------------------------------
--- INSERT TOGGLE
-------------------------------------------------------------
-
-UserInputService.InputBegan:Connect(function(Input, GameProcessed)
-
-    if GameProcessed then
-        return
-    end
-
-    if Input.KeyCode == UI.Settings.ToggleKey then
-
-        UI.Settings.Visible = not UI.Settings.Visible
-        ScreenGui.Enabled = UI.Settings.Visible
-
-    end
-
-end)
-
-------------------------------------------------------------
--- INITIAL STATE
-------------------------------------------------------------
-
-UI:SelectTab("Visuals")
-
-return UI
+return Module
