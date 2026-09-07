@@ -1350,26 +1350,10 @@ function UI:Toggle()
     self:SetVisible(not MenuVisible)
 end
 
+```lua
 function UI:Initialize(registry)
 
     Registry = registry
-
-    --------------------------------------------------------
-    -- CONNECT CUSTOMIZATION
-    --------------------------------------------------------
-
-    local customizationModules =
-        Registry:GetByTab("Customization")
-
-    if customizationModules
-        and customizationModules[1] then
-
-        customizationModules[1]._UI = self
-
-        if customizationModules[1].ApplyTheme then
-            customizationModules[1]:ApplyTheme()
-        end
-    end
 
     --------------------------------------------------------
     -- GUI
@@ -1431,8 +1415,11 @@ function UI:Initialize(registry)
     renderTab("Visuals")
 
     --------------------------------------------------------
-    -- APPLY CUSTOMIZATION
+    -- CONNECT CUSTOMIZATION
     --------------------------------------------------------
+
+    local customizationModules =
+        Registry:GetByTab("Customization")
 
     if customizationModules
         and customizationModules[1] then
@@ -1446,5 +1433,6 @@ function UI:Initialize(registry)
 
     return self
 end
+
 
 return UI
