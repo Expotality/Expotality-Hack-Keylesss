@@ -3,10 +3,18 @@ local Module = {}
 Module.Name = "Customization"
 Module.Description = "Customize the appearance of the menu."
 
+------------------------------------------------------------
+-- SETTINGS
+------------------------------------------------------------
+
 Module.Settings = {
     Enabled = true,
     Theme = "Ocean",
 }
+
+------------------------------------------------------------
+-- DROPDOWN OPTIONS
+------------------------------------------------------------
 
 Module.DropdownOptions = {
     Theme = {
@@ -18,7 +26,15 @@ Module.DropdownOptions = {
     },
 }
 
+------------------------------------------------------------
+-- THEMES
+------------------------------------------------------------
+
 Module.Themes = {
+
+    --------------------------------------------------------
+    -- OCEAN
+    --------------------------------------------------------
 
     Ocean = {
         Accent = Color3.fromRGB(90, 120, 255),
@@ -35,6 +51,10 @@ Module.Themes = {
         BorderColor = Color3.fromRGB(43, 44, 52),
     },
 
+    --------------------------------------------------------
+    -- PURPLE
+    --------------------------------------------------------
+
     Purple = {
         Accent = Color3.fromRGB(160, 90, 255),
 
@@ -49,6 +69,10 @@ Module.Themes = {
 
         BorderColor = Color3.fromRGB(50, 43, 60),
     },
+
+    --------------------------------------------------------
+    -- PINK
+    --------------------------------------------------------
 
     Pink = {
         Accent = Color3.fromRGB(255, 80, 170),
@@ -65,6 +89,10 @@ Module.Themes = {
         BorderColor = Color3.fromRGB(60, 42, 52),
     },
 
+    --------------------------------------------------------
+    -- CRIMSON
+    --------------------------------------------------------
+
     Crimson = {
         Accent = Color3.fromRGB(255, 55, 65),
 
@@ -79,6 +107,10 @@ Module.Themes = {
 
         BorderColor = Color3.fromRGB(62, 40, 42),
     },
+
+    --------------------------------------------------------
+    -- MONOCHROME
+    --------------------------------------------------------
 
     Monochrome = {
         Accent = Color3.fromRGB(220, 220, 220),
@@ -95,6 +127,10 @@ Module.Themes = {
         BorderColor = Color3.fromRGB(45, 45, 45),
     },
 }
+
+------------------------------------------------------------
+-- SETTINGS API
+------------------------------------------------------------
 
 function Module:GetSetting(name)
     return self.Settings[name]
@@ -113,15 +149,26 @@ function Module:SetSetting(name, value)
     end
 end
 
+------------------------------------------------------------
+-- DROPDOWN API
+------------------------------------------------------------
+
 function Module:GetDropdownOptions(name)
+
     return self.DropdownOptions[name]
 end
 
+------------------------------------------------------------
+-- THEME API
+------------------------------------------------------------
+
 function Module:GetTheme()
+
     return self.Themes[self.Settings.Theme]
 end
 
 function Module:GetThemes()
+
     return self.Themes
 end
 
@@ -140,16 +187,24 @@ function Module:ApplyTheme()
     end
 end
 
+------------------------------------------------------------
+-- MODULE API
+------------------------------------------------------------
+
 function Module:Enable()
+
     self.Settings.Enabled = true
+
     self:ApplyTheme()
 end
 
 function Module:Disable()
+
     self.Settings.Enabled = false
 end
 
 function Module:Initialize()
+
     self:ApplyTheme()
 end
 
