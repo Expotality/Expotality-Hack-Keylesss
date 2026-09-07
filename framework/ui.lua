@@ -1350,7 +1350,6 @@ function UI:Toggle()
     self:SetVisible(not MenuVisible)
 end
 
-```lua
 function UI:Initialize(registry)
 
     Registry = registry
