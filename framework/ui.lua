@@ -1,3 +1,4 @@
+```lua
 local UI = {}
 
 local Players = game:GetService("Players")
@@ -124,6 +125,7 @@ local function disableModule(module)
 end
 
 local function toggleModule(module)
+
     if getSetting(module, "Enabled") then
         disableModule(module)
     else
@@ -141,17 +143,18 @@ end
 
 local function getDropdownOptions(module, settingName)
 
-    -- Module-provided dropdowns
     if module and module.GetDropdownOptions then
-        local options = module:GetDropdownOptions(settingName)
+
+        local options =
+            module:GetDropdownOptions(settingName)
 
         if options then
             return options
         end
     end
 
-    -- Built-in dropdowns
     if settingName == "BoxStyle" then
+
         return {
             "Corner",
             "Full",
@@ -159,6 +162,7 @@ local function getDropdownOptions(module, settingName)
     end
 
     if settingName == "NameMode" then
+
         return {
             "DisplayName",
             "Username",
@@ -224,24 +228,39 @@ local function createToggle(parent, module, settingName, title)
 
     local function refresh()
 
-        local enabled = getSetting(module, settingName) == true
+        local enabled =
+            getSetting(module, settingName) == true
 
         if enabled then
+
             button.BackgroundColor3 = Accent
-            knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            knob.Position = UDim2.new(1, -19, 0, 3)
+            knob.BackgroundColor3 =
+                Color3.fromRGB(255, 255, 255)
+
+            knob.Position =
+                UDim2.new(1, -19, 0, 3)
+
         else
-            button.BackgroundColor3 = Color3.fromRGB(45, 46, 54)
-            knob.BackgroundColor3 = Color3.fromRGB(180, 182, 190)
-            knob.Position = UDim2.fromOffset(3, 3)
+
+            button.BackgroundColor3 =
+                Color3.fromRGB(45, 46, 54)
+
+            knob.BackgroundColor3 =
+                Color3.fromRGB(180, 182, 190)
+
+            knob.Position =
+                UDim2.fromOffset(3, 3)
         end
     end
 
     button.MouseButton1Click:Connect(function()
 
         if settingName == "Enabled" then
+
             toggleModule(module)
+
         else
+
             setSetting(
                 module,
                 settingName,
@@ -289,7 +308,9 @@ local function createNumber(parent, module, settingName, title)
     local input = create("TextBox", {
         BackgroundColor3 = Color3.fromRGB(18, 19, 24),
         BorderSizePixel = 0,
-        Text = tostring(getSetting(module, settingName)),
+        Text = tostring(
+            getSetting(module, settingName)
+        ),
         TextColor3 = TextColor,
         TextSize = 12,
         Font = Enum.Font.Gotham,
@@ -309,10 +330,20 @@ local function createNumber(parent, module, settingName, title)
         local value = tonumber(input.Text)
 
         if value then
-            setSetting(module, settingName, value)
+
+            setSetting(
+                module,
+                settingName,
+                value
+            )
+
             input.Text = tostring(value)
+
         else
-            input.Text = tostring(getSetting(module, settingName))
+
+            input.Text = tostring(
+                getSetting(module, settingName)
+            )
         end
     end)
 
@@ -353,6 +384,7 @@ local function closestColorIndex(color)
             math.abs(color.B - option.B)
 
         if distance < bestDistance then
+
             bestDistance = distance
             bestIndex = i
         end
@@ -387,7 +419,9 @@ local function createColor(parent, module, settingName, title)
     })
 
     local colorButton = create("TextButton", {
-        BackgroundColor3 = getSetting(module, settingName),
+        BackgroundColor3 =
+            getSetting(module, settingName),
+
         BorderSizePixel = 0,
         Text = "",
         AutoButtonColor = false,
@@ -399,9 +433,15 @@ local function createColor(parent, module, settingName, title)
     })
 
     corner(colorButton, 5)
-    stroke(colorButton, Color3.fromRGB(70, 71, 80))
+    stroke(
+        colorButton,
+        Color3.fromRGB(70, 71, 80)
+    )
 
-    local index = closestColorIndex(getSetting(module, settingName))
+    local index =
+        closestColorIndex(
+            getSetting(module, settingName)
+        )
 
     colorButton.MouseButton1Click:Connect(function()
 
@@ -411,10 +451,17 @@ local function createColor(parent, module, settingName, title)
             index = 1
         end
 
-        local color = COLOR_OPTIONS[index]
+        local color =
+            COLOR_OPTIONS[index]
 
-        setSetting(module, settingName, color)
-        colorButton.BackgroundColor3 = color
+        setSetting(
+            module,
+            settingName,
+            color
+        )
+
+        colorButton.BackgroundColor3 =
+            color
     end)
 
     return row
@@ -424,9 +471,18 @@ end
 -- DROPDOWN
 ------------------------------------------------------------
 
-local function createDropdown(parent, module, settingName, title)
+local function createDropdown(
+    parent,
+    module,
+    settingName,
+    title
+)
 
-    local options = getDropdownOptions(module, settingName)
+    local options =
+        getDropdownOptions(
+            module,
+            settingName
+        )
 
     if not options then
         return nil, 42
@@ -434,11 +490,20 @@ local function createDropdown(parent, module, settingName, title)
 
     local closedHeight = 42
     local optionHeight = 32
-    local openHeight = closedHeight + 6 + (#options * optionHeight)
+
+    local openHeight =
+        closedHeight
+        + 6
+        + (#options * optionHeight)
 
     local container = create("Frame", {
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 0, closedHeight),
+        Size = UDim2.new(
+            1,
+            0,
+            0,
+            closedHeight
+        ),
         ZIndex = 10,
         Parent = parent,
     })
@@ -446,7 +511,12 @@ local function createDropdown(parent, module, settingName, title)
     local row = create("Frame", {
         BackgroundColor3 = ElementBackground,
         BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, closedHeight),
+        Size = UDim2.new(
+            1,
+            0,
+            0,
+            closedHeight
+        ),
         ZIndex = 11,
         Parent = container,
     })
@@ -460,23 +530,45 @@ local function createDropdown(parent, module, settingName, title)
         TextSize = 13,
         Font = Enum.Font.GothamMedium,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Size = UDim2.new(0.5, 0, 1, 0),
+        Size = UDim2.new(
+            0.5,
+            0,
+            1,
+            0
+        ),
         Position = UDim2.fromOffset(14, 0),
         ZIndex = 12,
         Parent = row,
     })
 
     local button = create("TextButton", {
-        BackgroundColor3 = Color3.fromRGB(18, 19, 24),
+        BackgroundColor3 =
+            Color3.fromRGB(18, 19, 24),
+
         BorderSizePixel = 0,
-        Text = tostring(getSetting(module, settingName)) .. "  ▼",
+
+        Text =
+            tostring(
+                getSetting(module, settingName)
+            )
+            .. "  ▼",
+
         TextColor3 = TextColor,
         TextSize = 12,
         Font = Enum.Font.Gotham,
         AutoButtonColor = false,
         Active = true,
+
         Size = UDim2.fromOffset(130, 28),
-        Position = UDim2.new(1, -144, 0.5, -14),
+
+        Position =
+            UDim2.new(
+                1,
+                -144,
+                0.5,
+                -14
+            ),
+
         ZIndex = 13,
         Parent = row,
     })
@@ -484,24 +576,43 @@ local function createDropdown(parent, module, settingName, title)
     corner(button, 5)
 
     local dropdown = create("Frame", {
-        BackgroundColor3 = Color3.fromRGB(18, 19, 24),
+
+        BackgroundColor3 =
+            Color3.fromRGB(18, 19, 24),
+
         BorderSizePixel = 0,
         Visible = false,
-        Size = UDim2.new(1, 0, 0, #options * optionHeight),
-        Position = UDim2.fromOffset(0, 48),
+
+        Size =
+            UDim2.new(
+                1,
+                0,
+                0,
+                #options * optionHeight
+            ),
+
+        Position =
+            UDim2.fromOffset(0, 48),
+
         ZIndex = 20,
         Parent = container,
     })
 
     corner(dropdown, 6)
-    stroke(dropdown, Color3.fromRGB(55, 56, 65))
+
+    stroke(
+        dropdown,
+        Color3.fromRGB(55, 56, 65)
+    )
 
     local open = false
 
     local function refreshText()
 
         button.Text =
-            tostring(getSetting(module, settingName))
+            tostring(
+                getSetting(module, settingName)
+            )
             .. (open and "  ▲" or "  ▼")
     end
 
@@ -512,9 +623,24 @@ local function createDropdown(parent, module, settingName, title)
         dropdown.Visible = open
 
         if open then
-            container.Size = UDim2.new(1, 0, 0, openHeight)
+
+            container.Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    openHeight
+                )
+
         else
-            container.Size = UDim2.new(1, 0, 0, closedHeight)
+
+            container.Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    closedHeight
+                )
         end
 
         refreshText()
@@ -523,7 +649,10 @@ local function createDropdown(parent, module, settingName, title)
     for index, option in ipairs(options) do
 
         local optionButton = create("TextButton", {
-            BackgroundColor3 = Color3.fromRGB(18, 19, 24),
+
+            BackgroundColor3 =
+                Color3.fromRGB(18, 19, 24),
+
             BorderSizePixel = 0,
             Text = option,
             TextColor3 = TextColor,
@@ -531,29 +660,51 @@ local function createDropdown(parent, module, settingName, title)
             Font = Enum.Font.Gotham,
             AutoButtonColor = false,
             Active = true,
-            Size = UDim2.new(1, 0, 0, optionHeight),
-            Position = UDim2.fromOffset(0, (index - 1) * optionHeight),
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    optionHeight
+                ),
+
+            Position =
+                UDim2.fromOffset(
+                    0,
+                    (index - 1) * optionHeight
+                ),
+
             ZIndex = 21,
             Parent = dropdown,
         })
 
         optionButton.MouseEnter:Connect(function()
-            optionButton.BackgroundColor3 = ElementHover
+
+            optionButton.BackgroundColor3 =
+                ElementHover
         end)
 
         optionButton.MouseLeave:Connect(function()
-            optionButton.BackgroundColor3 = Color3.fromRGB(18, 19, 24)
+
+            optionButton.BackgroundColor3 =
+                Color3.fromRGB(18, 19, 24)
         end)
 
         optionButton.MouseButton1Click:Connect(function()
 
-            setSetting(module, settingName, option)
+            setSetting(
+                module,
+                settingName,
+                option
+            )
 
             setOpen(false)
         end)
     end
 
     button.MouseButton1Click:Connect(function()
+
         setOpen(not open)
     end)
 
@@ -590,7 +741,9 @@ local function createKeybind(parent, module)
     })
 
     local keyButton = create("TextButton", {
-        BackgroundColor3 = Color3.fromRGB(18, 19, 24),
+        BackgroundColor3 =
+            Color3.fromRGB(18, 19, 24),
+
         BorderSizePixel = 0,
         Text = "None",
         TextColor3 = SubTextColor,
@@ -598,8 +751,18 @@ local function createKeybind(parent, module)
         Font = Enum.Font.Gotham,
         AutoButtonColor = false,
         Active = true,
-        Size = UDim2.fromOffset(100, 28),
-        Position = UDim2.new(1, -114, 0.5, -14),
+
+        Size =
+            UDim2.fromOffset(100, 28),
+
+        Position =
+            UDim2.new(
+                1,
+                -114,
+                0.5,
+                -14
+            ),
+
         ZIndex = 7,
         Parent = row,
     })
@@ -630,7 +793,10 @@ end
 -- KEY INPUT MANAGER
 ------------------------------------------------------------
 
-UserInputService.InputBegan:Connect(function(input, processed)
+UserInputService.InputBegan:Connect(function(
+    input,
+    processed
+)
 
     if processed then
         return
@@ -642,27 +808,39 @@ UserInputService.InputBegan:Connect(function(input, processed)
 
     if ListeningForKeybind then
 
-        if input.UserInputType ~= Enum.UserInputType.Keyboard then
+        if input.UserInputType
+            ~= Enum.UserInputType.Keyboard then
+
             return
         end
 
-        local module = ListeningForKeybind
-        local data = Keybinds[module]
+        local module =
+            ListeningForKeybind
+
+        local data =
+            Keybinds[module]
 
         ListeningForKeybind = nil
 
-        if input.KeyCode == Enum.KeyCode.Escape then
+        if input.KeyCode
+            == Enum.KeyCode.Escape then
 
             data.Key = nil
             data.Button.Text = "None"
-            data.Button.TextColor3 = SubTextColor
+            data.Button.TextColor3 =
+                SubTextColor
 
             return
         end
 
-        data.Key = input.KeyCode
-        data.Button.Text = input.KeyCode.Name
-        data.Button.TextColor3 = TextColor
+        data.Key =
+            input.KeyCode
+
+        data.Button.Text =
+            input.KeyCode.Name
+
+        data.Button.TextColor3 =
+            TextColor
 
         return
     end
@@ -671,11 +849,14 @@ UserInputService.InputBegan:Connect(function(input, processed)
     -- MODULE KEYBINDS
     --------------------------------------------------------
 
-    if input.UserInputType == Enum.UserInputType.Keyboard then
+    if input.UserInputType
+        == Enum.UserInputType.Keyboard then
 
         for module, data in pairs(Keybinds) do
 
-            if data.Key and input.KeyCode == data.Key then
+            if data.Key
+                and input.KeyCode == data.Key then
+
                 toggleModule(module)
             end
         end
@@ -685,7 +866,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
     -- MENU TOGGLE
     --------------------------------------------------------
 
-    if input.KeyCode == Enum.KeyCode.Insert then
+    if input.KeyCode
+        == Enum.KeyCode.Insert then
+
         UI:Toggle()
     end
 end)
@@ -696,14 +879,25 @@ end)
 
 local function createModule(parent, module)
 
-    local settings = module.Settings or {}
+    local settings =
+        module.Settings or {}
 
     local settingsHeight = 0
 
     local card = create("Frame", {
-        BackgroundColor3 = SidebarBackground,
+        BackgroundColor3 =
+            SidebarBackground,
+
         BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, 52),
+
+        Size =
+            UDim2.new(
+                1,
+                0,
+                0,
+                52
+            ),
+
         ZIndex = 2,
         Parent = parent,
     })
@@ -721,7 +915,15 @@ local function createModule(parent, module)
         Text = "",
         AutoButtonColor = false,
         Active = true,
-        Size = UDim2.new(1, 0, 0, 52),
+
+        Size =
+            UDim2.new(
+                1,
+                0,
+                0,
+                52
+            ),
+
         ZIndex = 4,
         Parent = card,
     })
@@ -733,8 +935,18 @@ local function createModule(parent, module)
         TextSize = 14,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Size = UDim2.new(1, -90, 0, 22),
-        Position = UDim2.fromOffset(16, 6),
+
+        Size =
+            UDim2.new(
+                1,
+                -90,
+                0,
+                22
+            ),
+
+        Position =
+            UDim2.fromOffset(16, 6),
+
         ZIndex = 5,
         Parent = header,
     })
@@ -747,8 +959,18 @@ local function createModule(parent, module)
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTruncate = Enum.TextTruncate.AtEnd,
-        Size = UDim2.new(1, -100, 0, 16),
-        Position = UDim2.fromOffset(16, 29),
+
+        Size =
+            UDim2.new(
+                1,
+                -100,
+                0,
+                16
+            ),
+
+        Position =
+            UDim2.fromOffset(16, 29),
+
         ZIndex = 5,
         Parent = header,
     })
@@ -760,8 +982,18 @@ local function createModule(parent, module)
         TextSize = 24,
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Center,
-        Size = UDim2.fromOffset(35, 35),
-        Position = UDim2.new(1, -45, 0, 8),
+
+        Size =
+            UDim2.fromOffset(35, 35),
+
+        Position =
+            UDim2.new(
+                1,
+                -45,
+                0,
+                8
+            ),
+
         ZIndex = 5,
         Parent = header,
     })
@@ -773,16 +1005,33 @@ local function createModule(parent, module)
     local settingsFrame = create("Frame", {
         BackgroundTransparency = 1,
         Visible = false,
-        Size = UDim2.new(1, -24, 0, 0),
-        Position = UDim2.fromOffset(12, 58),
+
+        Size =
+            UDim2.new(
+                1,
+                -24,
+                0,
+                0
+            ),
+
+        Position =
+            UDim2.fromOffset(12, 58),
+
         ZIndex = 10,
         Parent = card,
     })
 
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 6)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Parent = settingsFrame
+    local layout =
+        Instance.new("UIListLayout")
+
+    layout.Padding =
+        UDim.new(0, 6)
+
+    layout.SortOrder =
+        Enum.SortOrder.LayoutOrder
+
+    layout.Parent =
+        settingsFrame
 
     --------------------------------------------------------
     -- ENABLED
@@ -809,7 +1058,7 @@ local function createModule(parent, module)
     settingsHeight += 42 + 6
 
     --------------------------------------------------------
-    -- TELEPORT MODULE
+    -- TELEPORT UI
     --------------------------------------------------------
 
     if module.Type == "Teleport" then
@@ -819,13 +1068,26 @@ local function createModule(parent, module)
         ----------------------------------------------------
 
         local coordsLabel = create("TextLabel", {
+
             BackgroundTransparency = 1,
-            Text = "X: 0.0   Y: 0.0   Z: 0.0",
+
+            Text =
+                "X: 0.0   Y: 0.0   Z: 0.0",
+
             TextColor3 = TextColor,
             TextSize = 13,
             Font = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Size = UDim2.new(1, 0, 0, 30),
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    30
+                ),
+
             ZIndex = 11,
             Parent = settingsFrame,
         })
@@ -836,22 +1098,27 @@ local function createModule(parent, module)
 
             while coordsLabel.Parent do
 
-                local Position = module:GetCoordinates()
+                local Position =
+                    module:GetCoordinates()
 
                 if Position then
-                    coordsLabel.Text = string.format(
-                        "X: %.1f   Y: %.1f   Z: %.1f",
-                        Position.X,
-                        Position.Y,
-                        Position.Z
-                    )
+
+                    coordsLabel.Text =
+                        string.format(
+                            "X: %.1f   Y: %.1f   Z: %.1f",
+                            Position.X,
+                            Position.Y,
+                            Position.Z
+                        )
+
                 else
-                    coordsLabel.Text = "X: --   Y: --   Z: --"
+
+                    coordsLabel.Text =
+                        "X: --   Y: --   Z: --"
                 end
 
                 task.wait(0.1)
             end
-
         end)
 
         ----------------------------------------------------
@@ -898,13 +1165,27 @@ local function createModule(parent, module)
         ----------------------------------------------------
 
         local teleportButton = create("TextButton", {
+
             BackgroundColor3 = Accent,
             BorderSizePixel = 0,
-            Text = "Teleport to Coordinates",
-            TextColor3 = Color3.new(1, 1, 1),
+
+            Text =
+                "Teleport to Coordinates",
+
+            TextColor3 =
+                Color3.new(1, 1, 1),
+
             TextSize = 13,
             Font = Enum.Font.GothamBold,
-            Size = UDim2.new(1, 0, 0, 38),
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    38
+                ),
+
             AutoButtonColor = true,
             ZIndex = 11,
             Parent = settingsFrame,
@@ -914,14 +1195,32 @@ local function createModule(parent, module)
 
         teleportButton.MouseButton1Click:Connect(function()
 
-            local X = getSetting(module, "X")
-            local Y = getSetting(module, "Y")
-            local Z = getSetting(module, "Z")
+            local X =
+                getSetting(
+                    module,
+                    "X"
+                )
+
+            local Y =
+                getSetting(
+                    module,
+                    "Y"
+                )
+
+            local Z =
+                getSetting(
+                    module,
+                    "Z"
+                )
 
             if X and Y and Z then
-                module:TeleportToCoordinates(X, Y, Z)
-            end
 
+                module:TeleportToCoordinates(
+                    X,
+                    Y,
+                    Z
+                )
+            end
         end)
 
         settingsHeight += 38 + 6
@@ -931,13 +1230,27 @@ local function createModule(parent, module)
         ----------------------------------------------------
 
         local playerLabel = create("TextLabel", {
+
             BackgroundTransparency = 1,
-            Text = "Teleport to Player",
+
+            Text =
+                "Teleport to Player",
+
             TextColor3 = TextColor,
             TextSize = 13,
             Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Size = UDim2.new(1, 0, 0, 25),
+
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    25
+                ),
+
             ZIndex = 11,
             Parent = settingsFrame,
         })
@@ -947,13 +1260,24 @@ local function createModule(parent, module)
         local selectedPlayer = nil
 
         local playerDropdown = create("TextButton", {
-            BackgroundColor3 = ElementBackground,
+
+            BackgroundColor3 =
+                ElementBackground,
+
             BorderSizePixel = 0,
             Text = "Select Player",
             TextColor3 = TextColor,
             TextSize = 12,
             Font = Enum.Font.Gotham,
-            Size = UDim2.new(1, 0, 0, 38),
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    38
+                ),
+
             AutoButtonColor = true,
             ZIndex = 11,
             Parent = settingsFrame,
@@ -963,49 +1287,90 @@ local function createModule(parent, module)
         stroke(playerDropdown, BorderColor)
 
         local playerList = create("ScrollingFrame", {
-            BackgroundColor3 = ElementBackground,
+
+            BackgroundColor3 =
+                ElementBackground,
+
             BorderSizePixel = 0,
             Visible = false,
-            Size = UDim2.new(1, 0, 0, 120),
-            Position = UDim2.fromOffset(0, 44),
-            CanvasSize = UDim2.new(0, 0, 0, 0),
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    120
+                ),
+
+            Position =
+                UDim2.fromOffset(0, 44),
+
+            CanvasSize =
+                UDim2.new(
+                    0,
+                    0,
+                    0,
+                    0
+                ),
+
             ScrollBarThickness = 4,
             ZIndex = 20,
-            Parent = playerDropdown,
+
+            Parent = settingsFrame,
         })
 
         corner(playerList, 6)
         stroke(playerList, BorderColor)
 
-        local playerLayout = Instance.new("UIListLayout")
-        playerLayout.Padding = UDim.new(0, 2)
-        playerLayout.Parent = playerList
+        local playerLayout =
+            Instance.new("UIListLayout")
+
+        playerLayout.Padding =
+            UDim.new(0, 2)
+
+        playerLayout.Parent =
+            playerList
 
         local function updatePlayerList()
 
-            for _, child in ipairs(playerList:GetChildren()) do
+            for _, child in
+                ipairs(playerList:GetChildren()) do
 
                 if child:IsA("TextButton") then
                     child:Destroy()
                 end
-
             end
 
-            for _, targetPlayer in ipairs(Players:GetPlayers()) do
+            for _, targetPlayer in
+                ipairs(Players:GetPlayers()) do
 
                 if targetPlayer ~= LocalPlayer then
 
                     local button = create("TextButton", {
-                        BackgroundColor3 = ElementBackground,
+
+                        BackgroundColor3 =
+                            ElementBackground,
+
                         BorderSizePixel = 0,
-                        Text = targetPlayer.DisplayName
+
+                        Text =
+                            targetPlayer.DisplayName
                             .. " (@"
                             .. targetPlayer.Name
                             .. ")",
+
                         TextColor3 = TextColor,
                         TextSize = 11,
                         Font = Enum.Font.Gotham,
-                        Size = UDim2.new(1, -8, 0, 32),
+
+                        Size =
+                            UDim2.new(
+                                1,
+                                -8,
+                                0,
+                                32
+                            ),
+
                         AutoButtonColor = true,
                         ZIndex = 21,
                         Parent = playerList,
@@ -1013,7 +1378,8 @@ local function createModule(parent, module)
 
                     button.MouseButton1Click:Connect(function()
 
-                        selectedPlayer = targetPlayer
+                        selectedPlayer =
+                            targetPlayer
 
                         playerDropdown.Text =
                             targetPlayer.DisplayName
@@ -1021,31 +1387,30 @@ local function createModule(parent, module)
                             .. targetPlayer.Name
                             .. ")"
 
-                        playerList.Visible = false
-
+                        playerList.Visible =
+                            false
                     end)
-
                 end
-
             end
 
-            playerList.CanvasSize = UDim2.new(
-                0,
-                0,
-                0,
-                playerLayout.AbsoluteContentSize.Y + 6
-            )
-
+            playerList.CanvasSize =
+                UDim2.new(
+                    0,
+                    0,
+                    0,
+                    playerLayout.AbsoluteContentSize.Y
+                    + 6
+                )
         end
 
         playerDropdown.MouseButton1Click:Connect(function()
 
-            playerList.Visible = not playerList.Visible
+            playerList.Visible =
+                not playerList.Visible
 
             if playerList.Visible then
                 updatePlayerList()
             end
-
         end)
 
         settingsHeight += 38 + 6
@@ -1054,27 +1419,44 @@ local function createModule(parent, module)
         -- TELEPORT TO PLAYER BUTTON
         ----------------------------------------------------
 
-        local teleportPlayerButton = create("TextButton", {
-            BackgroundColor3 = Accent,
-            BorderSizePixel = 0,
-            Text = "Teleport to Player",
-            TextColor3 = Color3.new(1, 1, 1),
-            TextSize = 13,
-            Font = Enum.Font.GothamBold,
-            Size = UDim2.new(1, 0, 0, 38),
-            AutoButtonColor = true,
-            ZIndex = 11,
-            Parent = settingsFrame,
-        })
+        local teleportPlayerButton =
+            create("TextButton", {
+
+                BackgroundColor3 = Accent,
+                BorderSizePixel = 0,
+
+                Text =
+                    "Teleport to Player",
+
+                TextColor3 =
+                    Color3.new(1, 1, 1),
+
+                TextSize = 13,
+                Font = Enum.Font.GothamBold,
+
+                Size =
+                    UDim2.new(
+                        1,
+                        0,
+                        0,
+                        38
+                    ),
+
+                AutoButtonColor = true,
+                ZIndex = 11,
+                Parent = settingsFrame,
+            })
 
         corner(teleportPlayerButton, 6)
 
         teleportPlayerButton.MouseButton1Click:Connect(function()
 
             if selectedPlayer then
-                module:TeleportToPlayer(selectedPlayer)
-            end
 
+                module:TeleportToPlayer(
+                    selectedPlayer
+                )
+            end
         end)
 
         settingsHeight += 38 + 6
@@ -1084,13 +1466,25 @@ local function createModule(parent, module)
         ----------------------------------------------------
 
         local waypointLabel = create("TextLabel", {
+
             BackgroundTransparency = 1,
             Text = "Waypoints",
+
             TextColor3 = TextColor,
             TextSize = 13,
             Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Size = UDim2.new(1, 0, 0, 25),
+
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    25
+                ),
+
             ZIndex = 11,
             Parent = settingsFrame,
         })
@@ -1098,16 +1492,34 @@ local function createModule(parent, module)
         settingsHeight += 25 + 6
 
         local waypointInput = create("TextBox", {
-            BackgroundColor3 = ElementBackground,
+
+            BackgroundColor3 =
+                ElementBackground,
+
             BorderSizePixel = 0,
-            PlaceholderText = "Waypoint name",
+
+            PlaceholderText =
+                "Waypoint name",
+
             Text = "",
             TextColor3 = TextColor,
-            PlaceholderColor3 = SubTextColor,
+
+            PlaceholderColor3 =
+                SubTextColor,
+
             TextSize = 12,
             Font = Enum.Font.Gotham,
+
             ClearTextOnFocus = false,
-            Size = UDim2.new(1, 0, 0, 38),
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    38
+                ),
+
             ZIndex = 11,
             Parent = settingsFrame,
         })
@@ -1121,143 +1533,251 @@ local function createModule(parent, module)
         -- WAYPOINT LIST
         ----------------------------------------------------
 
-        local waypointList = create("ScrollingFrame", {
-            BackgroundColor3 = ElementBackground,
-            BorderSizePixel = 0,
-            Size = UDim2.new(1, 0, 0, 150),
-            CanvasSize = UDim2.new(0, 0, 0, 0),
-            ScrollBarThickness = 4,
-            ZIndex = 11,
-            Parent = settingsFrame,
-        })
+        local waypointList =
+            create("ScrollingFrame", {
+
+                BackgroundColor3 =
+                    ElementBackground,
+
+                BorderSizePixel = 0,
+
+                Size =
+                    UDim2.new(
+                        1,
+                        0,
+                        0,
+                        150
+                    ),
+
+                CanvasSize =
+                    UDim2.new(
+                        0,
+                        0,
+                        0,
+                        0
+                    ),
+
+                ScrollBarThickness = 4,
+                ZIndex = 11,
+                Parent = settingsFrame,
+            })
 
         corner(waypointList, 6)
         stroke(waypointList, BorderColor)
 
-        local waypointLayout = Instance.new("UIListLayout")
-        waypointLayout.Padding = UDim.new(0, 4)
-        waypointLayout.Parent = waypointList
+        local waypointLayout =
+            Instance.new("UIListLayout")
+
+        waypointLayout.Padding =
+            UDim.new(0, 4)
+
+        waypointLayout.Parent =
+            waypointList
 
         settingsHeight += 150 + 6
 
         ----------------------------------------------------
-        -- WAYPOINT UPDATE FUNCTION
+        -- WAYPOINT UPDATE
         ----------------------------------------------------
 
         local updateWaypoints
 
         updateWaypoints = function()
 
-            for _, child in ipairs(waypointList:GetChildren()) do
+            for _, child in
+                ipairs(waypointList:GetChildren()) do
 
                 if child:IsA("Frame") then
                     child:Destroy()
                 end
-
             end
 
-            for Name, Waypoint in pairs(module.Waypoints) do
+            for Name, Waypoint in
+                pairs(module.Waypoints) do
 
-                local waypointFrame = create("Frame", {
-                    BackgroundColor3 = SidebarBackground,
-                    BorderSizePixel = 0,
-                    Size = UDim2.new(1, -8, 0, 42),
-                    ZIndex = 12,
-                    Parent = waypointList,
-                })
+                local waypointFrame =
+                    create("Frame", {
+
+                        BackgroundColor3 =
+                            SidebarBackground,
+
+                        BorderSizePixel = 0,
+
+                        Size =
+                            UDim2.new(
+                                1,
+                                -8,
+                                0,
+                                42
+                            ),
+
+                        ZIndex = 12,
+                        Parent = waypointList,
+                    })
 
                 corner(waypointFrame, 6)
 
                 create("TextLabel", {
+
                     BackgroundTransparency = 1,
+
                     Text = Name,
+
                     TextColor3 = TextColor,
                     TextSize = 11,
                     Font = Enum.Font.GothamBold,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    Size = UDim2.new(1, -100, 1, 0),
-                    Position = UDim2.fromOffset(8, 0),
+
+                    TextXAlignment =
+                        Enum.TextXAlignment.Left,
+
+                    Size =
+                        UDim2.new(
+                            1,
+                            -100,
+                            1,
+                            0
+                        ),
+
+                    Position =
+                        UDim2.fromOffset(8, 0),
+
                     ZIndex = 13,
                     Parent = waypointFrame,
                 })
 
-                local goButton = create("TextButton", {
-                    BackgroundColor3 = Accent,
-                    BorderSizePixel = 0,
-                    Text = "Go",
-                    TextColor3 = Color3.new(1, 1, 1),
-                    TextSize = 11,
-                    Font = Enum.Font.GothamBold,
-                    Size = UDim2.fromOffset(38, 28),
-                    Position = UDim2.new(1, -82, 0.5, -14),
-                    ZIndex = 13,
-                    Parent = waypointFrame,
-                })
+                local goButton =
+                    create("TextButton", {
+
+                        BackgroundColor3 =
+                            Accent,
+
+                        BorderSizePixel = 0,
+                        Text = "Go",
+
+                        TextColor3 =
+                            Color3.new(1, 1, 1),
+
+                        TextSize = 11,
+                        Font = Enum.Font.GothamBold,
+
+                        Size =
+                            UDim2.fromOffset(
+                                38,
+                                28
+                            ),
+
+                        Position =
+                            UDim2.new(
+                                1,
+                                -82,
+                                0.5,
+                                -14
+                            ),
+
+                        ZIndex = 13,
+                        Parent = waypointFrame,
+                    })
 
                 corner(goButton, 5)
 
                 goButton.MouseButton1Click:Connect(function()
 
-                    module:TeleportToWaypoint(Name)
-
+                    module:TeleportToWaypoint(
+                        Name
+                    )
                 end)
 
-                local deleteButton = create("TextButton", {
-                    BackgroundColor3 = ElementBackground,
-                    BorderSizePixel = 0,
-                    Text = "X",
-                    TextColor3 = TextColor,
-                    TextSize = 11,
-                    Font = Enum.Font.GothamBold,
-                    Size = UDim2.fromOffset(38, 28),
-                    Position = UDim2.new(1, -40, 0.5, -14),
-                    ZIndex = 13,
-                    Parent = waypointFrame,
-                })
+                local deleteButton =
+                    create("TextButton", {
+
+                        BackgroundColor3 =
+                            ElementBackground,
+
+                        BorderSizePixel = 0,
+                        Text = "X",
+                        TextColor3 = TextColor,
+
+                        TextSize = 11,
+                        Font = Enum.Font.GothamBold,
+
+                        Size =
+                            UDim2.fromOffset(
+                                38,
+                                28
+                            ),
+
+                        Position =
+                            UDim2.new(
+                                1,
+                                -40,
+                                0.5,
+                                -14
+                            ),
+
+                        ZIndex = 13,
+                        Parent = waypointFrame,
+                    })
 
                 corner(deleteButton, 5)
 
                 deleteButton.MouseButton1Click:Connect(function()
 
-                    module:DeleteWaypoint(Name)
+                    module:DeleteWaypoint(
+                        Name
+                    )
 
                     updateWaypoints()
-
                 end)
-
             end
 
-            waypointList.CanvasSize = UDim2.new(
-                0,
-                0,
-                0,
-                waypointLayout.AbsoluteContentSize.Y + 6
-            )
-
+            waypointList.CanvasSize =
+                UDim2.new(
+                    0,
+                    0,
+                    0,
+                    waypointLayout.AbsoluteContentSize.Y
+                    + 6
+                )
         end
 
         ----------------------------------------------------
         -- SAVE WAYPOINT
         ----------------------------------------------------
 
-        local saveWaypointButton = create("TextButton", {
-            BackgroundColor3 = Accent,
-            BorderSizePixel = 0,
-            Text = "Save Current Position",
-            TextColor3 = Color3.new(1, 1, 1),
-            TextSize = 13,
-            Font = Enum.Font.GothamBold,
-            Size = UDim2.new(1, 0, 0, 38),
-            AutoButtonColor = true,
-            ZIndex = 11,
-            Parent = settingsFrame,
-        })
+        local saveWaypointButton =
+            create("TextButton", {
+
+                BackgroundColor3 = Accent,
+                BorderSizePixel = 0,
+
+                Text =
+                    "Save Current Position",
+
+                TextColor3 =
+                    Color3.new(1, 1, 1),
+
+                TextSize = 13,
+                Font = Enum.Font.GothamBold,
+
+                Size =
+                    UDim2.new(
+                        1,
+                        0,
+                        0,
+                        38
+                    ),
+
+                AutoButtonColor = true,
+                ZIndex = 11,
+                Parent = settingsFrame,
+            })
 
         corner(saveWaypointButton, 6)
 
         saveWaypointButton.MouseButton1Click:Connect(function()
 
-            local Name = waypointInput.Text
+            local Name =
+                waypointInput.Text
 
             if Name ~= "" then
 
@@ -1266,9 +1786,7 @@ local function createModule(parent, module)
                 waypointInput.Text = ""
 
                 updateWaypoints()
-
             end
-
         end)
 
         settingsHeight += 38 + 6
@@ -1281,11 +1799,13 @@ local function createModule(parent, module)
         -- NORMAL SETTINGS
         ----------------------------------------------------
 
-        for settingName, value in pairs(settings) do
+        for settingName, value in
+            pairs(settings) do
 
             if settingName ~= "Enabled" then
 
-                local title = prettyName(settingName)
+                local title =
+                    prettyName(settingName)
 
                 ------------------------------------------------
                 -- SIMPLE VALUES
@@ -1327,7 +1847,10 @@ local function createModule(parent, module)
                 elseif typeof(value) == "string" then
 
                     local dropdown =
-                        getDropdownOptions(module, settingName)
+                        getDropdownOptions(
+                            module,
+                            settingName
+                        )
 
                     if dropdown then
 
@@ -1339,8 +1862,8 @@ local function createModule(parent, module)
                                 title
                             )
 
-                        settingsHeight += height + 6
-
+                        settingsHeight +=
+                            height + 6
                     end
 
                 ------------------------------------------------
@@ -1349,19 +1872,24 @@ local function createModule(parent, module)
 
                 elseif typeof(value) == "table" then
 
-                    local settingType = value.Type
-                    local default = value.Default
+                    local settingType =
+                        value.Type
+
+                    local default =
+                        value.Default
 
                     if settingType == "Number" then
 
-                        if getSetting(module, settingName) == nil then
+                        if getSetting(
+                            module,
+                            settingName
+                        ) == nil then
 
                             setSetting(
                                 module,
                                 settingName,
                                 default
                             )
-
                         end
 
                         createNumber(
@@ -1371,18 +1899,21 @@ local function createModule(parent, module)
                             title
                         )
 
-                        settingsHeight += 42 + 6
+                        settingsHeight +=
+                            42 + 6
 
                     elseif settingType == "Boolean" then
 
-                        if getSetting(module, settingName) == nil then
+                        if getSetting(
+                            module,
+                            settingName
+                        ) == nil then
 
                             setSetting(
                                 module,
                                 settingName,
                                 default
                             )
-
                         end
 
                         createToggle(
@@ -1392,16 +1923,12 @@ local function createModule(parent, module)
                             title
                         )
 
-                        settingsHeight += 42 + 6
-
+                        settingsHeight +=
+                            42 + 6
                     end
-
                 end
-
             end
-
         end
-
     end
 
     --------------------------------------------------------
@@ -1410,58 +1937,52 @@ local function createModule(parent, module)
 
     header.MouseButton1Click:Connect(function()
 
-        settingsFrame.Visible = not settingsFrame.Visible
+        settingsFrame.Visible =
+            not settingsFrame.Visible
 
         if settingsFrame.Visible then
 
             arrow.Text = "⌄"
 
-            card.Size = UDim2.new(
-                1,
-                0,
-                0,
-                52 + settingsHeight + 12
-            )
+            card.Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    52
+                    + settingsHeight
+                    + 12
+                )
 
-            settingsFrame.Size = UDim2.new(
-                1,
-                -24,
-                0,
-                settingsHeight
-            )
+            settingsFrame.Size =
+                UDim2.new(
+                    1,
+                    -24,
+                    0,
+                    settingsHeight
+                )
 
         else
 
             arrow.Text = "›"
 
-            card.Size = UDim2.new(
-                1,
-                0,
-                0,
-                52
-            )
-
+            card.Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    52
+                )
         end
 
-        parent.CanvasSize = UDim2.new(
-            0,
-            0,
-            0,
-            parent.UIListLayout.AbsoluteContentSize.Y + 10
-        )
-
-    end)
-
-    return card
-end
-
-  
-
-    header.MouseButton1Click:Connect(function()
-
-        opened = not opened
-
-        updateCard()
+        parent.CanvasSize =
+            UDim2.new(
+                0,
+                0,
+                0,
+                parent.UIListLayout.AbsoluteContentSize.Y
+                + 10
+            )
     end)
 
     return card
@@ -1473,7 +1994,8 @@ end
 
 local function clearContent()
 
-    for _, child in ipairs(Content:GetChildren()) do
+    for _, child in
+        ipairs(Content:GetChildren()) do
 
         if child:IsA("Frame")
             or child:IsA("TextLabel") then
@@ -1493,13 +2015,20 @@ local function renderTab(tabName)
 
     clearContent()
 
-    for name, button in pairs(TabButtons) do
+    for name, button in
+        pairs(TabButtons) do
 
         if name == tabName then
 
-            button.BackgroundColor3 = Accent
+            button.BackgroundColor3 =
+                Accent
+
             button.TextColor3 =
-                Color3.fromRGB(255, 255, 255)
+                Color3.fromRGB(
+                    255,
+                    255,
+                    255
+                )
 
         else
 
@@ -1511,18 +2040,36 @@ local function renderTab(tabName)
         end
     end
 
-    local modules = Registry:GetByTab(tabName)
+    local modules =
+        Registry:GetByTab(tabName)
 
-    if not modules or #modules == 0 then
+    if not modules
+        or #modules == 0 then
 
         create("TextLabel", {
+
             BackgroundTransparency = 1,
-            Text = "No modules in this tab.",
-            TextColor3 = SubTextColor,
+
+            Text =
+                "No modules in this tab.",
+
+            TextColor3 =
+                SubTextColor,
+
             TextSize = 13,
             Font = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Center,
-            Size = UDim2.new(1, 0, 0, 40),
+
+            TextXAlignment =
+                Enum.TextXAlignment.Center,
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    40
+                ),
+
             ZIndex = 2,
             Parent = Content,
         })
@@ -1530,8 +2077,13 @@ local function renderTab(tabName)
         return
     end
 
-    for _, module in ipairs(modules) do
-        createModule(Content, module)
+    for _, module in
+        ipairs(modules) do
+
+        createModule(
+            Content,
+            module
+        )
     end
 end
 
@@ -1545,25 +2097,35 @@ function UI:ApplyTheme(theme)
         return
     end
 
-    Accent = theme.Accent or Accent
-    Background = theme.Background or Background
+    Accent =
+        theme.Accent or Accent
+
+    Background =
+        theme.Background or Background
+
     SidebarBackground =
-        theme.SidebarBackground or SidebarBackground
+        theme.SidebarBackground
+        or SidebarBackground
 
     ElementBackground =
-        theme.ElementBackground or ElementBackground
+        theme.ElementBackground
+        or ElementBackground
 
     ElementHover =
-        theme.ElementHover or ElementHover
+        theme.ElementHover
+        or ElementHover
 
     TextColor =
-        theme.TextColor or TextColor
+        theme.TextColor
+        or TextColor
 
     SubTextColor =
-        theme.SubTextColor or SubTextColor
+        theme.SubTextColor
+        or SubTextColor
 
     BorderColor =
-        theme.BorderColor or BorderColor
+        theme.BorderColor
+        or BorderColor
 
     --------------------------------------------------------
     -- MAIN
@@ -1571,13 +2133,17 @@ function UI:ApplyTheme(theme)
 
     if Main then
 
-        Main.BackgroundColor3 = Background
+        Main.BackgroundColor3 =
+            Background
 
         local mainStroke =
-            Main:FindFirstChildOfClass("UIStroke")
+            Main:FindFirstChildOfClass(
+                "UIStroke"
+            )
 
         if mainStroke then
-            mainStroke.Color = BorderColor
+            mainStroke.Color =
+                BorderColor
         end
     end
 
@@ -1587,8 +2153,11 @@ function UI:ApplyTheme(theme)
 
     if Content then
 
-        Content.BackgroundColor3 = Background
-        Content.ScrollBarImageColor3 = Accent
+        Content.BackgroundColor3 =
+            Background
+
+        Content.ScrollBarImageColor3 =
+            Accent
     end
 
     --------------------------------------------------------
@@ -1596,7 +2165,8 @@ function UI:ApplyTheme(theme)
     --------------------------------------------------------
 
     if Sidebar then
-        Sidebar.BackgroundColor3 = SidebarBackground
+        Sidebar.BackgroundColor3 =
+            SidebarBackground
     end
 
     --------------------------------------------------------
@@ -1604,20 +2174,28 @@ function UI:ApplyTheme(theme)
     --------------------------------------------------------
 
     if TopBar then
-        TopBar.BackgroundColor3 = Background
+        TopBar.BackgroundColor3 =
+            Background
     end
 
     --------------------------------------------------------
     -- TAB BUTTONS
     --------------------------------------------------------
 
-    for name, button in pairs(TabButtons) do
+    for name, button in
+        pairs(TabButtons) do
 
         if name == CurrentTab then
 
-            button.BackgroundColor3 = Accent
+            button.BackgroundColor3 =
+                Accent
+
             button.TextColor3 =
-                Color3.fromRGB(255, 255, 255)
+                Color3.fromRGB(
+                    255,
+                    255,
+                    255
+                )
 
         else
 
@@ -1643,94 +2221,194 @@ end
 local function createSidebar()
 
     Sidebar = create("Frame", {
-        BackgroundColor3 = SidebarBackground,
+
+        BackgroundColor3 =
+            SidebarBackground,
+
         BorderSizePixel = 0,
-        Size = UDim2.new(0, 175, 1, 0),
+
+        Size =
+            UDim2.new(
+                0,
+                175,
+                1,
+                0
+            ),
+
         ZIndex = 10,
         Parent = Main,
     })
 
     create("TextLabel", {
+
         BackgroundTransparency = 1,
+
         Text = "◈ MENU",
-        TextColor3 = TextColor,
+
+        TextColor3 =
+            TextColor,
+
         TextSize = 18,
         Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Size = UDim2.new(1, -30, 0, 30),
-        Position = UDim2.fromOffset(18, 14),
+
+        TextXAlignment =
+            Enum.TextXAlignment.Left,
+
+        Size =
+            UDim2.new(
+                1,
+                -30,
+                0,
+                30
+            ),
+
+        Position =
+            UDim2.fromOffset(
+                18,
+                14
+            ),
+
         ZIndex = 11,
         Parent = Sidebar,
     })
 
     create("TextLabel", {
+
         BackgroundTransparency = 1,
+
         Text = "EXPOTALITY",
-        TextColor3 = SubTextColor,
+
+        TextColor3 =
+            SubTextColor,
+
         TextSize = 9,
         Font = Enum.Font.GothamMedium,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Size = UDim2.new(1, -30, 0, 18),
-        Position = UDim2.fromOffset(19, 38),
+
+        TextXAlignment =
+            Enum.TextXAlignment.Left,
+
+        Size =
+            UDim2.new(
+                1,
+                -30,
+                0,
+                18
+            ),
+
+        Position =
+            UDim2.fromOffset(
+                19,
+                38
+            ),
+
         ZIndex = 11,
         Parent = Sidebar,
     })
 
     local tabs = create("Frame", {
+
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, -24, 0, 230),
-        Position = UDim2.fromOffset(12, 75),
+
+        Size =
+            UDim2.new(
+                1,
+                -24,
+                0,
+                230
+            ),
+
+        Position =
+            UDim2.fromOffset(
+                12,
+                75
+            ),
+
         ZIndex = 11,
         Parent = Sidebar,
     })
 
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 6)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    local layout =
+        Instance.new("UIListLayout")
+
+    layout.Padding =
+        UDim.new(0, 6)
+
+    layout.SortOrder =
+        Enum.SortOrder.LayoutOrder
+
     layout.Parent = tabs
 
-    for index, tabName in ipairs(TAB_ORDER) do
+    for index, tabName in
+        ipairs(TAB_ORDER) do
 
         local button = create("TextButton", {
-            BackgroundColor3 = SidebarBackground,
+
+            BackgroundColor3 =
+                SidebarBackground,
+
             BorderSizePixel = 0,
+
             Text = tabName,
-            TextColor3 = SubTextColor,
+
+            TextColor3 =
+                SubTextColor,
+
             TextSize = 13,
             Font = Enum.Font.GothamMedium,
-            TextXAlignment = Enum.TextXAlignment.Left,
+
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
             AutoButtonColor = false,
             Active = true,
-            Size = UDim2.new(1, 0, 0, 38),
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    0,
+                    38
+                ),
+
             LayoutOrder = index,
+
             ZIndex = 12,
             Parent = tabs,
         })
 
         corner(button, 6)
 
-        local padding = Instance.new("UIPadding")
-        padding.PaddingLeft = UDim.new(0, 14)
+        local padding =
+            Instance.new("UIPadding")
+
+        padding.PaddingLeft =
+            UDim.new(0, 14)
+
         padding.Parent = button
 
-        TabButtons[tabName] = button
+        TabButtons[tabName] =
+            button
 
         button.MouseEnter:Connect(function()
 
             if CurrentTab ~= tabName then
-                button.BackgroundColor3 = ElementHover
+
+                button.BackgroundColor3 =
+                    ElementHover
             end
         end)
 
         button.MouseLeave:Connect(function()
 
             if CurrentTab ~= tabName then
+
                 button.BackgroundColor3 =
                     SidebarBackground
             end
         end)
 
         button.MouseButton1Click:Connect(function()
+
             renderTab(tabName)
         end)
     end
@@ -1743,62 +2421,138 @@ end
 local function createTopBar()
 
     TopBar = create("Frame", {
-        BackgroundColor3 = Background,
+
+        BackgroundColor3 =
+            Background,
+
         BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, 48),
+
+        Size =
+            UDim2.new(
+                1,
+                0,
+                0,
+                48
+            ),
+
         ZIndex = 30,
         Parent = Main,
     })
 
     create("TextLabel", {
+
         BackgroundTransparency = 1,
-        Text = "Roblox Hack Menu",
-        TextColor3 = TextColor,
+
+        Text =
+            "Roblox Hack Menu",
+
+        TextColor3 =
+            TextColor,
+
         TextSize = 15,
         Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Size = UDim2.new(1, -250, 1, 0),
-        Position = UDim2.fromOffset(195, 0),
+
+        TextXAlignment =
+            Enum.TextXAlignment.Left,
+
+        Size =
+            UDim2.new(
+                1,
+                -250,
+                1,
+                0
+            ),
+
+        Position =
+            UDim2.fromOffset(
+                195,
+                0
+            ),
+
         ZIndex = 31,
         Parent = TopBar,
     })
 
     create("TextLabel", {
+
         BackgroundTransparency = 1,
+
         Text = "v1.0",
-        TextColor3 = SubTextColor,
+
+        TextColor3 =
+            SubTextColor,
+
         TextSize = 10,
         Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        Size = UDim2.fromOffset(40, 48),
-        Position = UDim2.new(1, -85, 0, 0),
+
+        TextXAlignment =
+            Enum.TextXAlignment.Center,
+
+        Size =
+            UDim2.fromOffset(
+                40,
+                48
+            ),
+
+        Position =
+            UDim2.new(
+                1,
+                -85,
+                0,
+                0
+            ),
+
         ZIndex = 31,
         Parent = TopBar,
     })
 
     local close = create("TextButton", {
+
         BackgroundTransparency = 1,
+
         Text = "×",
-        TextColor3 = SubTextColor,
+
+        TextColor3 =
+            SubTextColor,
+
         TextSize = 23,
         Font = Enum.Font.Gotham,
+
         AutoButtonColor = false,
         Active = true,
-        Size = UDim2.fromOffset(45, 48),
-        Position = UDim2.new(1, -45, 0, 0),
+
+        Size =
+            UDim2.fromOffset(
+                45,
+                48
+            ),
+
+        Position =
+            UDim2.new(
+                1,
+                -45,
+                0,
+                0
+            ),
+
         ZIndex = 32,
         Parent = TopBar,
     })
 
     close.MouseEnter:Connect(function()
-        close.TextColor3 = TextColor
+
+        close.TextColor3 =
+            TextColor
     end)
 
     close.MouseLeave:Connect(function()
-        close.TextColor3 = SubTextColor
+
+        close.TextColor3 =
+            SubTextColor
     end)
 
     close.MouseButton1Click:Connect(function()
+
         UI:SetVisible(false)
     end)
 
@@ -1812,19 +2566,23 @@ local function createTopBar()
 
     TopBar.InputBegan:Connect(function(input)
 
-        if input.UserInputType ==
-            Enum.UserInputType.MouseButton1 then
+        if input.UserInputType
+            == Enum.UserInputType.MouseButton1 then
 
             dragging = true
-            dragStart = input.Position
-            startPosition = Main.Position
+
+            dragStart =
+                input.Position
+
+            startPosition =
+                Main.Position
         end
     end)
 
     TopBar.InputEnded:Connect(function(input)
 
-        if input.UserInputType ==
-            Enum.UserInputType.MouseButton1 then
+        if input.UserInputType
+            == Enum.UserInputType.MouseButton1 then
 
             dragging = false
         end
@@ -1836,21 +2594,26 @@ local function createTopBar()
             return
         end
 
-        if input.UserInputType ~=
-            Enum.UserInputType.MouseMovement then
+        if input.UserInputType
+            ~= Enum.UserInputType.MouseMovement then
 
             return
         end
 
         local delta =
-            input.Position - dragStart
+            input.Position
+            - dragStart
 
-        Main.Position = UDim2.new(
-            startPosition.X.Scale,
-            startPosition.X.Offset + delta.X,
-            startPosition.Y.Scale,
-            startPosition.Y.Offset + delta.Y
-        )
+        Main.Position =
+            UDim2.new(
+                startPosition.X.Scale,
+                startPosition.X.Offset
+                    + delta.X,
+
+                startPosition.Y.Scale,
+                startPosition.Y.Offset
+                    + delta.Y
+            )
     end)
 end
 
@@ -1861,31 +2624,78 @@ end
 local function createContent()
 
     Content = create("ScrollingFrame", {
-        BackgroundColor3 = Background,
+
+        BackgroundColor3 =
+            Background,
+
         BorderSizePixel = 0,
-        Position = UDim2.fromOffset(175, 48),
-        Size = UDim2.new(1, -175, 1, -48),
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+
+        Position =
+            UDim2.fromOffset(
+                175,
+                48
+            ),
+
+        Size =
+            UDim2.new(
+                1,
+                -175,
+                1,
+                -48
+            ),
+
+        CanvasSize =
+            UDim2.new(
+                0,
+                0,
+                0,
+                0
+            ),
+
+        AutomaticCanvasSize =
+            Enum.AutomaticSize.Y,
+
         ScrollBarThickness = 5,
-        ScrollBarImageColor3 = Accent,
-        ScrollBarImageTransparency = 0.2,
+
+        ScrollBarImageColor3 =
+            Accent,
+
+        ScrollBarImageTransparency =
+            0.2,
+
         Active = true,
         ClipsDescendants = true,
+
         ZIndex = 2,
         Parent = Main,
     })
 
-    local padding = Instance.new("UIPadding")
-    padding.PaddingLeft = UDim.new(0, 20)
-    padding.PaddingRight = UDim.new(0, 20)
-    padding.PaddingTop = UDim.new(0, 20)
-    padding.PaddingBottom = UDim.new(0, 20)
+    local padding =
+        Instance.new("UIPadding")
+
+    padding.PaddingLeft =
+        UDim.new(0, 20)
+
+    padding.PaddingRight =
+        UDim.new(0, 20)
+
+    padding.PaddingTop =
+        UDim.new(0, 20)
+
+    padding.PaddingBottom =
+        UDim.new(0, 20)
+
     padding.Parent = Content
 
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 10)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    local layout =
+        Instance.new("UIListLayout")
+
+    layout.Padding =
+        UDim.new(0, 10)
+
+    layout.SortOrder =
+        Enum.SortOrder.LayoutOrder
+
     layout.Parent = Content
 end
 
@@ -1910,7 +2720,10 @@ function UI:SetVisible(visible)
 end
 
 function UI:Toggle()
-    self:SetVisible(not MenuVisible)
+
+    self:SetVisible(
+        not MenuVisible
+    )
 end
 
 function UI:Initialize(registry)
@@ -1921,23 +2734,35 @@ function UI:Initialize(registry)
     -- GUI
     --------------------------------------------------------
 
-    ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "RobloxHackMenu"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.IgnoreGuiInset = true
+    ScreenGui =
+        Instance.new("ScreenGui")
+
+    ScreenGui.Name =
+        "RobloxHackMenu"
+
+    ScreenGui.ResetOnSpawn =
+        false
+
+    ScreenGui.IgnoreGuiInset =
+        true
+
     ScreenGui.ZIndexBehavior =
         Enum.ZIndexBehavior.Sibling
 
-    local success = pcall(function()
+    local success =
+        pcall(function()
+
+            ScreenGui.Parent =
+                game:GetService("CoreGui")
+        end)
+
+    if not success
+        or not ScreenGui.Parent then
 
         ScreenGui.Parent =
-            game:GetService("CoreGui")
-    end)
-
-    if not success or not ScreenGui.Parent then
-
-        ScreenGui.Parent =
-            LocalPlayer:WaitForChild("PlayerGui")
+            LocalPlayer:WaitForChild(
+                "PlayerGui"
+            )
     end
 
     --------------------------------------------------------
@@ -1945,16 +2770,28 @@ function UI:Initialize(registry)
     --------------------------------------------------------
 
     Main = create("Frame", {
-        BackgroundColor3 = Background,
+
+        BackgroundColor3 =
+            Background,
+
         BorderSizePixel = 0,
-        Size = UDim2.fromOffset(760, 500),
-        Position = UDim2.new(
-            0.5,
-            -380,
-            0.5,
-            -250
-        ),
+
+        Size =
+            UDim2.fromOffset(
+                760,
+                500
+            ),
+
+        Position =
+            UDim2.new(
+                0.5,
+                -380,
+                0.5,
+                -250
+            ),
+
         Active = true,
+
         ZIndex = 1,
         Parent = ScreenGui,
     })
@@ -1981,14 +2818,18 @@ function UI:Initialize(registry)
     --------------------------------------------------------
 
     local customizationModules =
-        Registry:GetByTab("Customization")
+        Registry:GetByTab(
+            "Customization"
+        )
 
     if customizationModules
         and customizationModules[1] then
 
-        customizationModules[1]._UI = self
+        customizationModules[1]._UI =
+            self
 
         if customizationModules[1].ApplyTheme then
+
             customizationModules[1]:ApplyTheme()
         end
     end
