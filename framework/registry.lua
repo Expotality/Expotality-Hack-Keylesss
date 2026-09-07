@@ -43,11 +43,6 @@ function Registry:LoadManifest(Manifest, BaseURL)
         return false
     end
 
-    if type(BaseURL) ~= "string" then
-        warn("[Registry] Invalid BaseURL.")
-        return false
-    end
-
     for _, Entry in ipairs(Manifest) do
         if Entry.File then
             local URL = BaseURL .. Entry.File
@@ -77,7 +72,6 @@ function Registry:LoadManifest(Manifest, BaseURL)
                 continue
             end
 
-            -- Manifest values override module metadata when provided.
             if Entry.Name then
                 Module.Name = Entry.Name
             end
@@ -127,31 +121,23 @@ function Registry:Unregister(Name)
 end
 
 ------------------------------------------------------------
--- GET MODULE
+-- GET
 ------------------------------------------------------------
 
 function Registry:Get(Name)
     return self.Modules[Name]
 end
 
-------------------------------------------------------------
--- GET ALL MODULES
-------------------------------------------------------------
-
 function Registry:GetAll()
     return self.Modules
 end
-
-------------------------------------------------------------
--- GET MODULES BY TAB
-------------------------------------------------------------
 
 function Registry:GetByTab(Tab)
     return self.ByTab[Tab] or {}
 end
 
 ------------------------------------------------------------
--- ENABLE / DISABLE
+-- ENABLE / DISABLE / TOGGLE
 ------------------------------------------------------------
 
 function Registry:Enable(Name)
@@ -187,17 +173,11 @@ end
 function Registry:Toggle(Name)
     local Module = self:Get(Name)
 
-    if not Module then
+    if not Module or not Module.Settings then
         return false
     end
 
-    if not Module.Settings then
-        return false
-    end
-
-    local Enabled = Module.Settings.Enabled
-
-    if Enabled then
+    if Module.Settings.Enabled then
         return self:Disable(Name)
     else
         return self:Enable(Name)
@@ -205,7 +185,7 @@ function Registry:Toggle(Name)
 end
 
 ------------------------------------------------------------
--- SETTING MANAGEMENT
+-- SETTINGS
 ------------------------------------------------------------
 
 function Registry:SetSetting(Name, Setting, Value)
@@ -219,11 +199,7 @@ function Registry:SetSetting(Name, Setting, Value)
         return Module:SetSetting(Setting, Value)
     end
 
-    if Module.Settings then
-        if Module.Settings[Setting] == nil then
-            return false
-        end
-
+    if Module.Settings and Module.Settings[Setting] ~= nil then
         Module.Settings[Setting] = Value
         return true
     end
