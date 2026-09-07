@@ -1,4 +1,3 @@
-```lua
 local UI = {}
 
 local Players = game:GetService("Players")
