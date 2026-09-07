@@ -67,22 +67,41 @@ local function stroke(parent, color, transparency)
 end
 
 local function getSetting(module, name)
+
     if module.GetSetting then
         return module:GetSetting(name)
     end
 
     if module.Settings then
-        return module.Settings[name]
+
+        local value = module.Settings[name]
+
+        if typeof(value) == "table" then
+            return value.Value or value.Default
+        end
+
+        return value
     end
 
     return nil
 end
 
 local function setSetting(module, name, value)
+
     if module.SetSetting then
         module:SetSetting(name, value)
-    elseif module.Settings then
-        module.Settings[name] = value
+        return
+    end
+
+    if module.Settings then
+
+        local setting = module.Settings[name]
+
+        if typeof(setting) == "table" then
+            setting.Value = value
+        else
+            module.Settings[name] = value
+        end
     end
 end
 
