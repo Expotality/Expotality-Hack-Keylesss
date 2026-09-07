@@ -12,6 +12,12 @@ return {
     },
 
     {
+    Name = "Jump Power",
+    File = "modules/movement/jump_power.lua",
+    Tab = "Movement"
+    },
+
+    {
         Name = "Flight",
         File = "modules/movement/flight.lua",
         Tab = "Movement",
