@@ -30,8 +30,6 @@ local Keys = {
     Down = false
 }
 
-local CurrentSpeed = 0
-
 local function getCharacter()
     return LocalPlayer.Character
 end
@@ -72,8 +70,6 @@ end
 
 local function stopFlight()
     cleanupForces()
-
-    CurrentSpeed = 0
     resetKeys()
 
     local Humanoid = getHumanoid()
@@ -151,6 +147,10 @@ local function updateFlight()
         MoveDirection -= Right
     end
 
+    if MoveDirection.Magnitude > 0 then
+        MoveDirection = MoveDirection.Unit
+    end
+
     local Vertical = 0
 
     if Keys.Up then
@@ -161,12 +161,12 @@ local function updateFlight()
         Vertical -= 1
     end
 
-    if MoveDirection.Magnitude > 0 then
-    MoveDirection = MoveDirection.Unit
-end
-
-local HorizontalVelocity = MoveDirection * Module.Settings.Speed
-local VerticalVelocity = Vector3.new(0, Vertical * Module.Settings.Speed, 0)
+    local HorizontalVelocity = MoveDirection * Module.Settings.Speed
+    local VerticalVelocity = Vector3.new(
+        0,
+        Vertical * Module.Settings.Speed,
+        0
+    )
 
     BodyVelocity.Velocity = HorizontalVelocity + VerticalVelocity
 
@@ -176,51 +176,59 @@ local VerticalVelocity = Vector3.new(0, Vertical * Module.Settings.Speed, 0)
     )
 end
 
+------------------------------------------------------------
+-- FIXED FLY CONTROLS
+------------------------------------------------------------
+
 UserInputService.InputBegan:Connect(function(Input, GameProcessed)
     if GameProcessed then
         return
     end
 
-    if Input.KeyCode == Module.Settings.ForwardKey then
+    if Input.KeyCode == Enum.KeyCode.W then
         Keys.Forward = true
 
-    elseif Input.KeyCode == Module.Settings.BackwardKey then
+    elseif Input.KeyCode == Enum.KeyCode.S then
         Keys.Backward = true
 
-    elseif Input.KeyCode == Module.Settings.LeftKey then
+    elseif Input.KeyCode == Enum.KeyCode.A then
         Keys.Left = true
 
-    elseif Input.KeyCode == Module.Settings.RightKey then
+    elseif Input.KeyCode == Enum.KeyCode.D then
         Keys.Right = true
 
-    elseif Input.KeyCode == Module.Settings.UpKey then
+    elseif Input.KeyCode == Enum.KeyCode.Space then
         Keys.Up = true
 
-    elseif Input.KeyCode == Module.Settings.DownKey then
+    elseif Input.KeyCode == Enum.KeyCode.LeftControl then
         Keys.Down = true
     end
 end)
 
 UserInputService.InputEnded:Connect(function(Input)
-    if Input.KeyCode == Module.Settings.ForwardKey then
+    if Input.KeyCode == Enum.KeyCode.W then
         Keys.Forward = false
 
-    elseif Input.KeyCode == Module.Settings.BackwardKey then
+    elseif Input.KeyCode == Enum.KeyCode.S then
         Keys.Backward = false
 
-    elseif Input.KeyCode == Module.Settings.LeftKey then
+    elseif Input.KeyCode == Enum.KeyCode.A then
         Keys.Left = false
 
-    elseif Input.KeyCode == Module.Settings.RightKey then
+    elseif Input.KeyCode == Enum.KeyCode.D then
         Keys.Right = false
 
-    elseif Input.KeyCode == Module.Settings.UpKey then
+    elseif Input.KeyCode == Enum.KeyCode.Space then
         Keys.Up = false
 
-    elseif Input.KeyCode == Module.Settings.DownKey then
+    elseif Input.KeyCode == Enum.KeyCode.LeftControl then
         Keys.Down = false
     end
 end)
+
+------------------------------------------------------------
+-- UPDATE
+------------------------------------------------------------
 
 UpdateConnection = RunService.RenderStepped:Connect(updateFlight)
 
@@ -229,10 +237,13 @@ CharacterConnection = LocalPlayer.CharacterAdded:Connect(function()
         task.wait(0.5)
 
         stopFlight()
-
         startFlight()
     end
 end)
+
+------------------------------------------------------------
+-- MODULE API
+------------------------------------------------------------
 
 function Module:Enable()
     if self.Settings.Enabled then
@@ -255,15 +266,17 @@ function Module:SetSetting(Name, Value)
         return false
     end
 
-    self.Settings[Name] = Value
-
     if Name == "Enabled" then
         if Value then
             self:Enable()
         else
             self:Disable()
         end
+
+        return true
     end
+
+    self.Settings[Name] = Value
 
     return true
 end
