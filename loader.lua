@@ -1,4 +1,4 @@
-local BASE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPOSITORY/main/"
+local BASE_URL = "https://raw.githubusercontent.com/Expotality/Expotality-Hack-Keyless/main/"
 
 local function fetch(path)
     local url = BASE_URL .. path
