@@ -795,22 +795,83 @@ local function createModule(parent, module)
 
     for settingName, value in pairs(settings) do
 
-        if settingName ~= "Enabled" then
+    if settingName ~= "Enabled" then
 
-            local title = prettyName(settingName)
+        local title = prettyName(settingName)
 
-            if typeof(value) == "boolean" then
+        ----------------------------------------------------
+        -- SIMPLE VALUES
+        ----------------------------------------------------
 
-                createToggle(
-                    settingsFrame,
-                    module,
-                    settingName,
-                    title
-                )
+        if typeof(value) == "boolean" then
 
-                settingsHeight += 42 + 6
+            createToggle(
+                settingsFrame,
+                module,
+                settingName,
+                title
+            )
 
-            elseif typeof(value) == "number" then
+            settingsHeight += 42 + 6
+
+        elseif typeof(value) == "number" then
+
+            createNumber(
+                settingsFrame,
+                module,
+                settingName,
+                title
+            )
+
+            settingsHeight += 42 + 6
+
+        elseif typeof(value) == "Color3" then
+
+            createColor(
+                settingsFrame,
+                module,
+                settingName,
+                title
+            )
+
+            settingsHeight += 42 + 6
+
+        elseif typeof(value) == "string" then
+
+            local dropdown =
+                getDropdownOptions(module, settingName)
+
+            if dropdown then
+
+                local _, height =
+                    createDropdown(
+                        settingsFrame,
+                        module,
+                        settingName,
+                        title
+                    )
+
+                settingsHeight += height + 6
+            end
+
+        ----------------------------------------------------
+        -- TYPED SETTINGS
+        ----------------------------------------------------
+
+        elseif typeof(value) == "table" then
+
+            local settingType = value.Type
+            local default = value.Default
+
+            if settingType == "Number" then
+
+                if getSetting(module, settingName) == nil then
+                    setSetting(
+                        module,
+                        settingName,
+                        default
+                    )
+                end
 
                 createNumber(
                     settingsFrame,
@@ -821,9 +882,17 @@ local function createModule(parent, module)
 
                 settingsHeight += 42 + 6
 
-            elseif typeof(value) == "Color3" then
+            elseif settingType == "Boolean" then
 
-                createColor(
+                if getSetting(module, settingName) == nil then
+                    setSetting(
+                        module,
+                        settingName,
+                        default
+                    )
+                end
+
+                createToggle(
                     settingsFrame,
                     module,
                     settingName,
@@ -831,27 +900,10 @@ local function createModule(parent, module)
                 )
 
                 settingsHeight += 42 + 6
-
-            elseif typeof(value) == "string" then
-
-                local dropdown =
-                    getDropdownOptions(module, settingName)
-
-                if dropdown then
-
-                    local _, height =
-                        createDropdown(
-                            settingsFrame,
-                            module,
-                            settingName,
-                            title
-                        )
-
-                    settingsHeight += height + 6
-                end
             end
         end
     end
+end
 
     --------------------------------------------------------
     -- EXPAND / COLLAPSE
