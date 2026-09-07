@@ -45,5 +45,11 @@ return {
     Name = "Teleport",
     File = "modules/movement/teleport.lua",
     Tab = "Movement"
+    },
+
+    {
+    Name = "Explorer",
+    File = "modules/visuals/explorer.lua",
+    Tab = "Visuals"
 },
 }
