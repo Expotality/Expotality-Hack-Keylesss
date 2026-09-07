@@ -28,6 +28,68 @@ function Registry:Register(Module)
 
     table.insert(self.ByTab[Tab], Module)
 
+    print("[Registry] Registered: " .. Module.Name .. " [" .. Tab .. "]")
+
+    return true
+end
+
+------------------------------------------------------------
+-- LOAD MANIFEST
+------------------------------------------------------------
+
+function Registry:LoadManifest(Manifest, BaseURL)
+    if type(Manifest) ~= "table" then
+        warn("[Registry] Invalid manifest.")
+        return false
+    end
+
+    if type(BaseURL) ~= "string" then
+        warn("[Registry] Invalid BaseURL.")
+        return false
+    end
+
+    for _, Entry in ipairs(Manifest) do
+        if Entry.File then
+            local URL = BaseURL .. Entry.File
+
+            local Success, Source = pcall(function()
+                return game:HttpGet(URL)
+            end)
+
+            if not Success then
+                warn("[Registry] Failed to download: " .. Entry.File)
+                warn(tostring(Source))
+                continue
+            end
+
+            local LoadSuccess, Module = pcall(function()
+                return loadstring(Source)()
+            end)
+
+            if not LoadSuccess then
+                warn("[Registry] Failed to load: " .. Entry.File)
+                warn(tostring(Module))
+                continue
+            end
+
+            if not Module then
+                warn("[Registry] Module returned nil: " .. Entry.File)
+                continue
+            end
+
+            -- Manifest values override module metadata when provided.
+            if Entry.Name then
+                Module.Name = Entry.Name
+            end
+
+            if Entry.Tab then
+                Module.Tab = Entry.Tab
+            end
+
+            self:Register(Module)
+        end
+    end
+
     return true
 end
 
