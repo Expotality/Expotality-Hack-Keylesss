@@ -11,6 +11,7 @@ return {
         Speed = {
             Type = "Number",
             Default = 500,
+            Value = 500,
             Minimum = 0,
             Maximum = math.huge
         }
