@@ -1036,26 +1036,77 @@ local function createModule(parent, module)
     -- ENABLED
     --------------------------------------------------------
 
-    createToggle(
-        settingsFrame,
-        module,
-        "Enabled",
-        "Enabled"
-    )
+    if module.Type ~= "Action" then
 
-    settingsHeight += 42 + 6
+        createToggle(
+            settingsFrame,
+            module,
+            "Enabled",
+            "Enabled"
+        )
+
+        settingsHeight += 42 + 6
+    end
 
     --------------------------------------------------------
     -- KEYBIND
     --------------------------------------------------------
 
-    createKeybind(
-        settingsFrame,
-        module
-    )
+    if module.Type ~= "Action" then
 
-    settingsHeight += 42 + 6
+        createKeybind(
+            settingsFrame,
+            module
+        )
 
+        settingsHeight += 42 + 6
+
+    end
+
+    --------------------------------------------------------
+    -- ACTION BUTTON
+    --------------------------------------------------------
+
+    if module.Type == "Action" then
+
+        local actionButton = create("TextButton", {
+
+            BackgroundColor3 = Accent,
+            BorderSizePixel = 0,
+
+            Text = module.Name or "Execute",
+
+            TextColor3 = Color3.new(1, 1, 1),
+
+            TextSize = 13,
+            Font = Enum.Font.GothamBold,
+
+            Size = UDim2.new(
+                1,
+                0,
+                0,
+                38
+            ),
+
+            AutoButtonColor = true,
+            ZIndex = 11,
+
+            Parent = settingsFrame,
+        })
+
+        corner(actionButton, 6)
+
+        actionButton.MouseButton1Click:Connect(function()
+
+            if module.Open then
+                module:Open()
+            end
+
+        end)
+
+        settingsHeight += 38 + 6
+
+    end
     --------------------------------------------------------
     -- TELEPORT UI
     --------------------------------------------------------
