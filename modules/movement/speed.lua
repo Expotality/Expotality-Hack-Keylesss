@@ -29,7 +29,7 @@ return {
                 local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 
                 if humanoid then
-                    humanoid.WalkSpeed = settings.Speed
+                    humanoid.WalkSpeed = settings.Speed.Value
                 end
 
                 task.wait()
