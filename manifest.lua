@@ -51,5 +51,17 @@ return {
     Name = "Explorer",
     File = "modules/visuals/explorer.lua",
     Tab = "Visuals"
-},
+    },
+
+    {
+    Name = "Event Monitor",
+    File = "modules/events/event_monitor.lua",
+    Tab = "Events"
+    },
+
+    {
+    Name = "Anti-AFK",
+    File = "modules/events/anti_afk.lua",
+    Tab = "Events"
+    },
 }
