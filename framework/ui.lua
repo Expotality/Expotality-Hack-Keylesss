@@ -9,6 +9,8 @@ local Registry
 local ScreenGui
 local Main
 local Content
+local Sidebar
+local TopBar
 
 local CurrentTab = "Visuals"
 local MenuVisible = true
@@ -116,7 +118,18 @@ end
 -- DROPDOWN OPTIONS
 ------------------------------------------------------------
 
-local function getDropdownOptions(settingName)
+local function getDropdownOptions(module, settingName)
+
+    -- Module-provided dropdowns
+    if module and module.GetDropdownOptions then
+        local options = module:GetDropdownOptions(settingName)
+
+        if options then
+            return options
+        end
+    end
+
+    -- Built-in dropdowns
     if settingName == "BoxStyle" then
         return {
             "Corner",
@@ -139,6 +152,7 @@ end
 ------------------------------------------------------------
 
 local function createToggle(parent, module, settingName, title)
+
     local row = create("Frame", {
         BackgroundColor3 = ElementBackground,
         BorderSizePixel = 0,
@@ -188,6 +202,7 @@ local function createToggle(parent, module, settingName, title)
     corner(knob, 10)
 
     local function refresh()
+
         local enabled = getSetting(module, settingName) == true
 
         if enabled then
@@ -202,6 +217,7 @@ local function createToggle(parent, module, settingName, title)
     end
 
     button.MouseButton1Click:Connect(function()
+
         if settingName == "Enabled" then
             toggleModule(module)
         else
@@ -225,6 +241,7 @@ end
 ------------------------------------------------------------
 
 local function createNumber(parent, module, settingName, title)
+
     local row = create("Frame", {
         BackgroundColor3 = ElementBackground,
         BorderSizePixel = 0,
@@ -267,6 +284,7 @@ local function createNumber(parent, module, settingName, title)
     corner(input, 5)
 
     input.FocusLost:Connect(function()
+
         local value = tonumber(input.Text)
 
         if value then
@@ -298,6 +316,7 @@ local COLOR_OPTIONS = {
 }
 
 local function closestColorIndex(color)
+
     local bestIndex = 1
     local bestDistance = math.huge
 
@@ -306,6 +325,7 @@ local function closestColorIndex(color)
     end
 
     for i, option in ipairs(COLOR_OPTIONS) do
+
         local distance =
             math.abs(color.R - option.R) +
             math.abs(color.G - option.G) +
@@ -321,6 +341,7 @@ local function closestColorIndex(color)
 end
 
 local function createColor(parent, module, settingName, title)
+
     local row = create("Frame", {
         BackgroundColor3 = ElementBackground,
         BorderSizePixel = 0,
@@ -362,6 +383,7 @@ local function createColor(parent, module, settingName, title)
     local index = closestColorIndex(getSetting(module, settingName))
 
     colorButton.MouseButton1Click:Connect(function()
+
         index += 1
 
         if index > #COLOR_OPTIONS then
@@ -382,7 +404,8 @@ end
 ------------------------------------------------------------
 
 local function createDropdown(parent, module, settingName, title)
-    local options = getDropdownOptions(settingName)
+
+    local options = getDropdownOptions(module, settingName)
 
     if not options then
         return nil, 42
@@ -455,11 +478,14 @@ local function createDropdown(parent, module, settingName, title)
     local open = false
 
     local function refreshText()
-        button.Text = tostring(getSetting(module, settingName))
+
+        button.Text =
+            tostring(getSetting(module, settingName))
             .. (open and "  ▲" or "  ▼")
     end
 
     local function setOpen(value)
+
         open = value
 
         dropdown.Visible = open
@@ -474,6 +500,7 @@ local function createDropdown(parent, module, settingName, title)
     end
 
     for index, option in ipairs(options) do
+
         local optionButton = create("TextButton", {
             BackgroundColor3 = Color3.fromRGB(18, 19, 24),
             BorderSizePixel = 0,
@@ -498,7 +525,9 @@ local function createDropdown(parent, module, settingName, title)
         end)
 
         optionButton.MouseButton1Click:Connect(function()
+
             setSetting(module, settingName, option)
+
             setOpen(false)
         end)
     end
@@ -515,6 +544,7 @@ end
 ------------------------------------------------------------
 
 local function createKeybind(parent, module)
+
     local row = create("Frame", {
         BackgroundColor3 = ElementBackground,
         BorderSizePixel = 0,
@@ -561,6 +591,7 @@ local function createKeybind(parent, module)
     }
 
     keyButton.MouseButton1Click:Connect(function()
+
         if ListeningForKeybind then
             return
         end
@@ -579,6 +610,7 @@ end
 ------------------------------------------------------------
 
 UserInputService.InputBegan:Connect(function(input, processed)
+
     if processed then
         return
     end
@@ -588,6 +620,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
     --------------------------------------------------------
 
     if ListeningForKeybind then
+
         if input.UserInputType ~= Enum.UserInputType.Keyboard then
             return
         end
@@ -598,9 +631,11 @@ UserInputService.InputBegan:Connect(function(input, processed)
         ListeningForKeybind = nil
 
         if input.KeyCode == Enum.KeyCode.Escape then
+
             data.Key = nil
             data.Button.Text = "None"
             data.Button.TextColor3 = SubTextColor
+
             return
         end
 
@@ -616,7 +651,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
     --------------------------------------------------------
 
     if input.UserInputType == Enum.UserInputType.Keyboard then
+
         for module, data in pairs(Keybinds) do
+
             if data.Key and input.KeyCode == data.Key then
                 toggleModule(module)
             end
@@ -637,9 +674,9 @@ end)
 ------------------------------------------------------------
 
 local function createModule(parent, module)
+
     local settings = module.Settings or {}
 
-    local settingRows = {}
     local settingsHeight = 0
 
     local card = create("Frame", {
@@ -755,7 +792,9 @@ local function createModule(parent, module)
     --------------------------------------------------------
 
     for settingName, value in pairs(settings) do
+
         if settingName ~= "Enabled" then
+
             local title = prettyName(settingName)
 
             if typeof(value) == "boolean" then
@@ -793,15 +832,18 @@ local function createModule(parent, module)
 
             elseif typeof(value) == "string" then
 
-                local dropdown = getDropdownOptions(settingName)
+                local dropdown =
+                    getDropdownOptions(module, settingName)
 
                 if dropdown then
-                    local _, height = createDropdown(
-                        settingsFrame,
-                        module,
-                        settingName,
-                        title
-                    )
+
+                    local _, height =
+                        createDropdown(
+                            settingsFrame,
+                            module,
+                            settingName,
+                            title
+                        )
 
                     settingsHeight += height + 6
                 end
@@ -816,8 +858,11 @@ local function createModule(parent, module)
     local opened = false
 
     local function updateCard()
+
         if opened then
+
             settingsFrame.Visible = true
+
             settingsFrame.Size = UDim2.new(
                 1,
                 -24,
@@ -833,7 +878,9 @@ local function createModule(parent, module)
             )
 
             arrow.Text = "⌄"
+
         else
+
             settingsFrame.Visible = false
 
             card.Size = UDim2.new(
@@ -848,7 +895,9 @@ local function createModule(parent, module)
     end
 
     header.MouseButton1Click:Connect(function()
+
         opened = not opened
+
         updateCard()
     end)
 
@@ -860,14 +909,19 @@ end
 ------------------------------------------------------------
 
 local function clearContent()
+
     for _, child in ipairs(Content:GetChildren()) do
-        if child:IsA("Frame") or child:IsA("TextLabel") then
+
+        if child:IsA("Frame")
+            or child:IsA("TextLabel") then
+
             child:Destroy()
         end
     end
 end
 
 local function renderTab(tabName)
+
     if not Registry then
         return
     end
@@ -877,18 +931,27 @@ local function renderTab(tabName)
     clearContent()
 
     for name, button in pairs(TabButtons) do
+
         if name == tabName then
+
             button.BackgroundColor3 = Accent
-            button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            button.TextColor3 =
+                Color3.fromRGB(255, 255, 255)
+
         else
-            button.BackgroundColor3 = SidebarBackground
-            button.TextColor3 = SubTextColor
+
+            button.BackgroundColor3 =
+                SidebarBackground
+
+            button.TextColor3 =
+                SubTextColor
         end
     end
 
     local modules = Registry:GetByTab(tabName)
 
     if not modules or #modules == 0 then
+
         create("TextLabel", {
             BackgroundTransparency = 1,
             Text = "No modules in this tab.",
@@ -910,11 +973,113 @@ local function renderTab(tabName)
 end
 
 ------------------------------------------------------------
+-- THEME
+------------------------------------------------------------
+
+function UI:ApplyTheme(theme)
+
+    if not theme then
+        return
+    end
+
+    Accent = theme.Accent or Accent
+    Background = theme.Background or Background
+    SidebarBackground =
+        theme.SidebarBackground or SidebarBackground
+
+    ElementBackground =
+        theme.ElementBackground or ElementBackground
+
+    ElementHover =
+        theme.ElementHover or ElementHover
+
+    TextColor =
+        theme.TextColor or TextColor
+
+    SubTextColor =
+        theme.SubTextColor or SubTextColor
+
+    BorderColor =
+        theme.BorderColor or BorderColor
+
+    --------------------------------------------------------
+    -- MAIN
+    --------------------------------------------------------
+
+    if Main then
+
+        Main.BackgroundColor3 = Background
+
+        local mainStroke =
+            Main:FindFirstChildOfClass("UIStroke")
+
+        if mainStroke then
+            mainStroke.Color = BorderColor
+        end
+    end
+
+    --------------------------------------------------------
+    -- CONTENT
+    --------------------------------------------------------
+
+    if Content then
+
+        Content.BackgroundColor3 = Background
+        Content.ScrollBarImageColor3 = Accent
+    end
+
+    --------------------------------------------------------
+    -- SIDEBAR
+    --------------------------------------------------------
+
+    if Sidebar then
+        Sidebar.BackgroundColor3 = SidebarBackground
+    end
+
+    --------------------------------------------------------
+    -- TOP BAR
+    --------------------------------------------------------
+
+    if TopBar then
+        TopBar.BackgroundColor3 = Background
+    end
+
+    --------------------------------------------------------
+    -- TAB BUTTONS
+    --------------------------------------------------------
+
+    for name, button in pairs(TabButtons) do
+
+        if name == CurrentTab then
+
+            button.BackgroundColor3 = Accent
+            button.TextColor3 =
+                Color3.fromRGB(255, 255, 255)
+
+        else
+
+            button.BackgroundColor3 =
+                SidebarBackground
+
+            button.TextColor3 =
+                SubTextColor
+        end
+    end
+
+    --------------------------------------------------------
+    -- REBUILD CURRENT TAB
+    --------------------------------------------------------
+
+    renderTab(CurrentTab)
+end
+
+------------------------------------------------------------
 -- SIDEBAR
 ------------------------------------------------------------
 
 local function createSidebar()
-    local sidebar = create("Frame", {
+
+    Sidebar = create("Frame", {
         BackgroundColor3 = SidebarBackground,
         BorderSizePixel = 0,
         Size = UDim2.new(0, 175, 1, 0),
@@ -932,7 +1097,7 @@ local function createSidebar()
         Size = UDim2.new(1, -30, 0, 30),
         Position = UDim2.fromOffset(18, 14),
         ZIndex = 11,
-        Parent = sidebar,
+        Parent = Sidebar,
     })
 
     create("TextLabel", {
@@ -945,7 +1110,7 @@ local function createSidebar()
         Size = UDim2.new(1, -30, 0, 18),
         Position = UDim2.fromOffset(19, 38),
         ZIndex = 11,
-        Parent = sidebar,
+        Parent = Sidebar,
     })
 
     local tabs = create("Frame", {
@@ -953,7 +1118,7 @@ local function createSidebar()
         Size = UDim2.new(1, -24, 0, 230),
         Position = UDim2.fromOffset(12, 75),
         ZIndex = 11,
-        Parent = sidebar,
+        Parent = Sidebar,
     })
 
     local layout = Instance.new("UIListLayout")
@@ -962,6 +1127,7 @@ local function createSidebar()
     layout.Parent = tabs
 
     for index, tabName in ipairs(TAB_ORDER) do
+
         local button = create("TextButton", {
             BackgroundColor3 = SidebarBackground,
             BorderSizePixel = 0,
@@ -987,14 +1153,17 @@ local function createSidebar()
         TabButtons[tabName] = button
 
         button.MouseEnter:Connect(function()
+
             if CurrentTab ~= tabName then
                 button.BackgroundColor3 = ElementHover
             end
         end)
 
         button.MouseLeave:Connect(function()
+
             if CurrentTab ~= tabName then
-                button.BackgroundColor3 = SidebarBackground
+                button.BackgroundColor3 =
+                    SidebarBackground
             end
         end)
 
@@ -1009,7 +1178,8 @@ end
 ------------------------------------------------------------
 
 local function createTopBar()
-    local topBar = create("Frame", {
+
+    TopBar = create("Frame", {
         BackgroundColor3 = Background,
         BorderSizePixel = 0,
         Size = UDim2.new(1, 0, 0, 48),
@@ -1027,7 +1197,7 @@ local function createTopBar()
         Size = UDim2.new(1, -250, 1, 0),
         Position = UDim2.fromOffset(195, 0),
         ZIndex = 31,
-        Parent = topBar,
+        Parent = TopBar,
     })
 
     create("TextLabel", {
@@ -1040,7 +1210,7 @@ local function createTopBar()
         Size = UDim2.fromOffset(40, 48),
         Position = UDim2.new(1, -85, 0, 0),
         ZIndex = 31,
-        Parent = topBar,
+        Parent = TopBar,
     })
 
     local close = create("TextButton", {
@@ -1054,7 +1224,7 @@ local function createTopBar()
         Size = UDim2.fromOffset(45, 48),
         Position = UDim2.new(1, -45, 0, 0),
         ZIndex = 32,
-        Parent = topBar,
+        Parent = TopBar,
     })
 
     close.MouseEnter:Connect(function()
@@ -1077,30 +1247,40 @@ local function createTopBar()
     local dragStart
     local startPosition
 
-    topBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    TopBar.InputBegan:Connect(function(input)
+
+        if input.UserInputType ==
+            Enum.UserInputType.MouseButton1 then
+
             dragging = true
             dragStart = input.Position
             startPosition = Main.Position
         end
     end)
 
-    topBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    TopBar.InputEnded:Connect(function(input)
+
+        if input.UserInputType ==
+            Enum.UserInputType.MouseButton1 then
+
             dragging = false
         end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
+
         if not dragging then
             return
         end
 
-        if input.UserInputType ~= Enum.UserInputType.MouseMovement then
+        if input.UserInputType ~=
+            Enum.UserInputType.MouseMovement then
+
             return
         end
 
-        local delta = input.Position - dragStart
+        local delta =
+            input.Position - dragStart
 
         Main.Position = UDim2.new(
             startPosition.X.Scale,
@@ -1116,6 +1296,7 @@ end
 ------------------------------------------------------------
 
 local function createContent()
+
     Content = create("ScrollingFrame", {
         BackgroundColor3 = Background,
         BorderSizePixel = 0,
@@ -1150,12 +1331,14 @@ end
 ------------------------------------------------------------
 
 function UI:SelectTab(tabName)
+
     if TabButtons[tabName] then
         renderTab(tabName)
     end
 end
 
 function UI:SetVisible(visible)
+
     MenuVisible = visible
 
     if Main then
@@ -1168,7 +1351,25 @@ function UI:Toggle()
 end
 
 function UI:Initialize(registry)
+
     Registry = registry
+
+    --------------------------------------------------------
+    -- CONNECT CUSTOMIZATION
+    --------------------------------------------------------
+
+    local customizationModules =
+        Registry:GetByTab("Customization")
+
+    if customizationModules
+        and customizationModules[1] then
+
+        customizationModules[1]._UI = self
+
+        if customizationModules[1].ApplyTheme then
+            customizationModules[1]:ApplyTheme()
+        end
+    end
 
     --------------------------------------------------------
     -- GUI
@@ -1178,14 +1379,19 @@ function UI:Initialize(registry)
     ScreenGui.Name = "RobloxHackMenu"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.IgnoreGuiInset = true
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.ZIndexBehavior =
+        Enum.ZIndexBehavior.Sibling
 
     local success = pcall(function()
-        ScreenGui.Parent = game:GetService("CoreGui")
+
+        ScreenGui.Parent =
+            game:GetService("CoreGui")
     end)
 
     if not success or not ScreenGui.Parent then
-        ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+        ScreenGui.Parent =
+            LocalPlayer:WaitForChild("PlayerGui")
     end
 
     --------------------------------------------------------
@@ -1196,7 +1402,12 @@ function UI:Initialize(registry)
         BackgroundColor3 = Background,
         BorderSizePixel = 0,
         Size = UDim2.fromOffset(760, 500),
-        Position = UDim2.new(0.5, -380, 0.5, -250),
+        Position = UDim2.new(
+            0.5,
+            -380,
+            0.5,
+            -250
+        ),
         Active = true,
         ZIndex = 1,
         Parent = ScreenGui,
@@ -1218,6 +1429,20 @@ function UI:Initialize(registry)
     --------------------------------------------------------
 
     renderTab("Visuals")
+
+    --------------------------------------------------------
+    -- APPLY CUSTOMIZATION
+    --------------------------------------------------------
+
+    if customizationModules
+        and customizationModules[1] then
+
+        customizationModules[1]._UI = self
+
+        if customizationModules[1].ApplyTheme then
+            customizationModules[1]:ApplyTheme()
+        end
+    end
 
     return self
 end
