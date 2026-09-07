@@ -1,57 +1,82 @@
 local BASE_URL = "https://raw.githubusercontent.com/Expotality/Expotality-Hack-Keylesss/main/"
 
 local function fetch(path)
-    local url = BASE_URL .. path
-
-    local success, result = pcall(function()
-        return game:HttpGet(url)
-    end)
-
-    if not success then
-        error("Failed to download " .. path .. ": " .. tostring(result))
-    end
-
-    return result
+    return game:HttpGet(BASE_URL .. path)
 end
 
-local function loadRemote(path)
+local function load(path)
     local source = fetch(path)
+    local fn = loadstring(source)
 
-    local success, result = pcall(function()
-        return loadstring(source)()
-    end)
-
-    if not success then
-        warn("[Menu] Failed to load " .. path)
-        warn(result)
-        return nil
+    if not fn then
+        error("Failed to compile: " .. path)
     end
 
-    return result
+    return fn()
 end
 
-print("[Menu] Loading...")
+------------------------------------------------------------
+-- LOAD CORE
+------------------------------------------------------------
 
-local manifest = loadRemote("manifest.lua")
+local manifest = load("manifest.lua")
+local registry = load("framework/registry.lua")
 
-if not manifest then
-    error("[Menu] Manifest failed to load.")
+------------------------------------------------------------
+-- LOAD MODULES
+------------------------------------------------------------
+
+for _, entry in ipairs(manifest) do
+
+    local success, module = pcall(function()
+        return load(entry.File)
+    end)
+
+    if success and module then
+
+        -- Manifest controls the tab.
+        module.Tab = entry.Tab
+
+        registry:Register(module)
+
+        if module.Initialize then
+            pcall(function()
+                module:Initialize()
+            end)
+        end
+
+    else
+        warn("[Menu] Failed to load: " .. tostring(entry.File))
+        warn(module)
+    end
 end
 
-local registry = loadRemote("framework/registry.lua")
+------------------------------------------------------------
+-- LOAD UI
+------------------------------------------------------------
 
-if not registry then
-    error("[Menu] Registry failed to load.")
+local success, ui = pcall(function()
+    return load("framework/ui.lua")
+end)
+
+if not success then
+    error("[Menu] UI failed to load: " .. tostring(ui))
 end
 
-local ui = loadRemote("framework/ui.lua")
+------------------------------------------------------------
+-- CONNECT CUSTOMIZATION
+------------------------------------------------------------
 
-if not ui then
-    error("[Menu] UI failed to load.")
+local customization = registry:Get("Customization")
+
+if customization then
+    customization._UI = ui
+
+    if customization.ApplyTheme then
+        pcall(function()
+            customization:ApplyTheme()
+        end)
+    end
 end
 
-registry:LoadManifest(manifest, BASE_URL)
-
-ui:Initialize(registry)
-
-print("[Menu] Loaded successfully.")
+print("[Menu] Loaded successfully")
