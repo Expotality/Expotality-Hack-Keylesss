@@ -809,119 +809,650 @@ local function createModule(parent, module)
     settingsHeight += 42 + 6
 
     --------------------------------------------------------
-    -- SETTINGS
+    -- TELEPORT MODULE
     --------------------------------------------------------
 
-    for settingName, value in pairs(settings) do
-
-    if settingName ~= "Enabled" then
-
-        local title = prettyName(settingName)
+    if module.Type == "Teleport" then
 
         ----------------------------------------------------
-        -- SIMPLE VALUES
+        -- CURRENT COORDINATES
         ----------------------------------------------------
 
-        if typeof(value) == "boolean" then
+        local coordsLabel = create("TextLabel", {
+            BackgroundTransparency = 1,
+            Text = "X: 0.0   Y: 0.0   Z: 0.0",
+            TextColor3 = TextColor,
+            TextSize = 13,
+            Font = Enum.Font.Gotham,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Size = UDim2.new(1, 0, 0, 30),
+            ZIndex = 11,
+            Parent = settingsFrame,
+        })
 
-            createToggle(
-                settingsFrame,
-                module,
-                settingName,
-                title
+        settingsHeight += 30 + 6
+
+        task.spawn(function()
+
+            while coordsLabel.Parent do
+
+                local Position = module:GetCoordinates()
+
+                if Position then
+                    coordsLabel.Text = string.format(
+                        "X: %.1f   Y: %.1f   Z: %.1f",
+                        Position.X,
+                        Position.Y,
+                        Position.Z
+                    )
+                else
+                    coordsLabel.Text = "X: --   Y: --   Z: --"
+                end
+
+                task.wait(0.1)
+            end
+
+        end)
+
+        ----------------------------------------------------
+        -- X
+        ----------------------------------------------------
+
+        createNumber(
+            settingsFrame,
+            module,
+            "X",
+            "X"
+        )
+
+        settingsHeight += 42 + 6
+
+        ----------------------------------------------------
+        -- Y
+        ----------------------------------------------------
+
+        createNumber(
+            settingsFrame,
+            module,
+            "Y",
+            "Y"
+        )
+
+        settingsHeight += 42 + 6
+
+        ----------------------------------------------------
+        -- Z
+        ----------------------------------------------------
+
+        createNumber(
+            settingsFrame,
+            module,
+            "Z",
+            "Z"
+        )
+
+        settingsHeight += 42 + 6
+
+        ----------------------------------------------------
+        -- TELEPORT TO COORDINATES
+        ----------------------------------------------------
+
+        local teleportButton = create("TextButton", {
+            BackgroundColor3 = Accent,
+            BorderSizePixel = 0,
+            Text = "Teleport to Coordinates",
+            TextColor3 = Color3.new(1, 1, 1),
+            TextSize = 13,
+            Font = Enum.Font.GothamBold,
+            Size = UDim2.new(1, 0, 0, 38),
+            AutoButtonColor = true,
+            ZIndex = 11,
+            Parent = settingsFrame,
+        })
+
+        corner(teleportButton, 6)
+
+        teleportButton.MouseButton1Click:Connect(function()
+
+            local X = getSetting(module, "X")
+            local Y = getSetting(module, "Y")
+            local Z = getSetting(module, "Z")
+
+            if X and Y and Z then
+                module:TeleportToCoordinates(X, Y, Z)
+            end
+
+        end)
+
+        settingsHeight += 38 + 6
+
+        ----------------------------------------------------
+        -- PLAYER TELEPORT
+        ----------------------------------------------------
+
+        local playerLabel = create("TextLabel", {
+            BackgroundTransparency = 1,
+            Text = "Teleport to Player",
+            TextColor3 = TextColor,
+            TextSize = 13,
+            Font = Enum.Font.GothamBold,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Size = UDim2.new(1, 0, 0, 25),
+            ZIndex = 11,
+            Parent = settingsFrame,
+        })
+
+        settingsHeight += 25 + 6
+
+        local selectedPlayer = nil
+
+        local playerDropdown = create("TextButton", {
+            BackgroundColor3 = ElementBackground,
+            BorderSizePixel = 0,
+            Text = "Select Player",
+            TextColor3 = TextColor,
+            TextSize = 12,
+            Font = Enum.Font.Gotham,
+            Size = UDim2.new(1, 0, 0, 38),
+            AutoButtonColor = true,
+            ZIndex = 11,
+            Parent = settingsFrame,
+        })
+
+        corner(playerDropdown, 6)
+        stroke(playerDropdown, BorderColor)
+
+        local playerList = create("ScrollingFrame", {
+            BackgroundColor3 = ElementBackground,
+            BorderSizePixel = 0,
+            Visible = false,
+            Size = UDim2.new(1, 0, 0, 120),
+            Position = UDim2.fromOffset(0, 44),
+            CanvasSize = UDim2.new(0, 0, 0, 0),
+            ScrollBarThickness = 4,
+            ZIndex = 20,
+            Parent = playerDropdown,
+        })
+
+        corner(playerList, 6)
+        stroke(playerList, BorderColor)
+
+        local playerLayout = Instance.new("UIListLayout")
+        playerLayout.Padding = UDim.new(0, 2)
+        playerLayout.Parent = playerList
+
+        local function updatePlayerList()
+
+            for _, child in ipairs(playerList:GetChildren()) do
+
+                if child:IsA("TextButton") then
+                    child:Destroy()
+                end
+
+            end
+
+            for _, targetPlayer in ipairs(Players:GetPlayers()) do
+
+                if targetPlayer ~= LocalPlayer then
+
+                    local button = create("TextButton", {
+                        BackgroundColor3 = ElementBackground,
+                        BorderSizePixel = 0,
+                        Text = targetPlayer.DisplayName
+                            .. " (@"
+                            .. targetPlayer.Name
+                            .. ")",
+                        TextColor3 = TextColor,
+                        TextSize = 11,
+                        Font = Enum.Font.Gotham,
+                        Size = UDim2.new(1, -8, 0, 32),
+                        AutoButtonColor = true,
+                        ZIndex = 21,
+                        Parent = playerList,
+                    })
+
+                    button.MouseButton1Click:Connect(function()
+
+                        selectedPlayer = targetPlayer
+
+                        playerDropdown.Text =
+                            targetPlayer.DisplayName
+                            .. " (@"
+                            .. targetPlayer.Name
+                            .. ")"
+
+                        playerList.Visible = false
+
+                    end)
+
+                end
+
+            end
+
+            playerList.CanvasSize = UDim2.new(
+                0,
+                0,
+                0,
+                playerLayout.AbsoluteContentSize.Y + 6
             )
 
-            settingsHeight += 42 + 6
+        end
 
-        elseif typeof(value) == "number" then
+        playerDropdown.MouseButton1Click:Connect(function()
 
-            createNumber(
-                settingsFrame,
-                module,
-                settingName,
-                title
+            playerList.Visible = not playerList.Visible
+
+            if playerList.Visible then
+                updatePlayerList()
+            end
+
+        end)
+
+        settingsHeight += 38 + 6
+
+        ----------------------------------------------------
+        -- TELEPORT TO PLAYER BUTTON
+        ----------------------------------------------------
+
+        local teleportPlayerButton = create("TextButton", {
+            BackgroundColor3 = Accent,
+            BorderSizePixel = 0,
+            Text = "Teleport to Player",
+            TextColor3 = Color3.new(1, 1, 1),
+            TextSize = 13,
+            Font = Enum.Font.GothamBold,
+            Size = UDim2.new(1, 0, 0, 38),
+            AutoButtonColor = true,
+            ZIndex = 11,
+            Parent = settingsFrame,
+        })
+
+        corner(teleportPlayerButton, 6)
+
+        teleportPlayerButton.MouseButton1Click:Connect(function()
+
+            if selectedPlayer then
+                module:TeleportToPlayer(selectedPlayer)
+            end
+
+        end)
+
+        settingsHeight += 38 + 6
+
+        ----------------------------------------------------
+        -- WAYPOINTS
+        ----------------------------------------------------
+
+        local waypointLabel = create("TextLabel", {
+            BackgroundTransparency = 1,
+            Text = "Waypoints",
+            TextColor3 = TextColor,
+            TextSize = 13,
+            Font = Enum.Font.GothamBold,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Size = UDim2.new(1, 0, 0, 25),
+            ZIndex = 11,
+            Parent = settingsFrame,
+        })
+
+        settingsHeight += 25 + 6
+
+        local waypointInput = create("TextBox", {
+            BackgroundColor3 = ElementBackground,
+            BorderSizePixel = 0,
+            PlaceholderText = "Waypoint name",
+            Text = "",
+            TextColor3 = TextColor,
+            PlaceholderColor3 = SubTextColor,
+            TextSize = 12,
+            Font = Enum.Font.Gotham,
+            ClearTextOnFocus = false,
+            Size = UDim2.new(1, 0, 0, 38),
+            ZIndex = 11,
+            Parent = settingsFrame,
+        })
+
+        corner(waypointInput, 6)
+        stroke(waypointInput, BorderColor)
+
+        settingsHeight += 38 + 6
+
+        ----------------------------------------------------
+        -- WAYPOINT LIST
+        ----------------------------------------------------
+
+        local waypointList = create("ScrollingFrame", {
+            BackgroundColor3 = ElementBackground,
+            BorderSizePixel = 0,
+            Size = UDim2.new(1, 0, 0, 150),
+            CanvasSize = UDim2.new(0, 0, 0, 0),
+            ScrollBarThickness = 4,
+            ZIndex = 11,
+            Parent = settingsFrame,
+        })
+
+        corner(waypointList, 6)
+        stroke(waypointList, BorderColor)
+
+        local waypointLayout = Instance.new("UIListLayout")
+        waypointLayout.Padding = UDim.new(0, 4)
+        waypointLayout.Parent = waypointList
+
+        settingsHeight += 150 + 6
+
+        ----------------------------------------------------
+        -- WAYPOINT UPDATE FUNCTION
+        ----------------------------------------------------
+
+        local updateWaypoints
+
+        updateWaypoints = function()
+
+            for _, child in ipairs(waypointList:GetChildren()) do
+
+                if child:IsA("Frame") then
+                    child:Destroy()
+                end
+
+            end
+
+            for Name, Waypoint in pairs(module.Waypoints) do
+
+                local waypointFrame = create("Frame", {
+                    BackgroundColor3 = SidebarBackground,
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, -8, 0, 42),
+                    ZIndex = 12,
+                    Parent = waypointList,
+                })
+
+                corner(waypointFrame, 6)
+
+                create("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Text = Name,
+                    TextColor3 = TextColor,
+                    TextSize = 11,
+                    Font = Enum.Font.GothamBold,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Size = UDim2.new(1, -100, 1, 0),
+                    Position = UDim2.fromOffset(8, 0),
+                    ZIndex = 13,
+                    Parent = waypointFrame,
+                })
+
+                local goButton = create("TextButton", {
+                    BackgroundColor3 = Accent,
+                    BorderSizePixel = 0,
+                    Text = "Go",
+                    TextColor3 = Color3.new(1, 1, 1),
+                    TextSize = 11,
+                    Font = Enum.Font.GothamBold,
+                    Size = UDim2.fromOffset(38, 28),
+                    Position = UDim2.new(1, -82, 0.5, -14),
+                    ZIndex = 13,
+                    Parent = waypointFrame,
+                })
+
+                corner(goButton, 5)
+
+                goButton.MouseButton1Click:Connect(function()
+
+                    module:TeleportToWaypoint(Name)
+
+                end)
+
+                local deleteButton = create("TextButton", {
+                    BackgroundColor3 = ElementBackground,
+                    BorderSizePixel = 0,
+                    Text = "X",
+                    TextColor3 = TextColor,
+                    TextSize = 11,
+                    Font = Enum.Font.GothamBold,
+                    Size = UDim2.fromOffset(38, 28),
+                    Position = UDim2.new(1, -40, 0.5, -14),
+                    ZIndex = 13,
+                    Parent = waypointFrame,
+                })
+
+                corner(deleteButton, 5)
+
+                deleteButton.MouseButton1Click:Connect(function()
+
+                    module:DeleteWaypoint(Name)
+
+                    updateWaypoints()
+
+                end)
+
+            end
+
+            waypointList.CanvasSize = UDim2.new(
+                0,
+                0,
+                0,
+                waypointLayout.AbsoluteContentSize.Y + 6
             )
 
-            settingsHeight += 42 + 6
+        end
 
-        elseif typeof(value) == "Color3" then
+        ----------------------------------------------------
+        -- SAVE WAYPOINT
+        ----------------------------------------------------
 
-            createColor(
-                settingsFrame,
-                module,
-                settingName,
-                title
-            )
+        local saveWaypointButton = create("TextButton", {
+            BackgroundColor3 = Accent,
+            BorderSizePixel = 0,
+            Text = "Save Current Position",
+            TextColor3 = Color3.new(1, 1, 1),
+            TextSize = 13,
+            Font = Enum.Font.GothamBold,
+            Size = UDim2.new(1, 0, 0, 38),
+            AutoButtonColor = true,
+            ZIndex = 11,
+            Parent = settingsFrame,
+        })
 
-            settingsHeight += 42 + 6
+        corner(saveWaypointButton, 6)
 
-        elseif typeof(value) == "string" then
+        saveWaypointButton.MouseButton1Click:Connect(function()
 
-            local dropdown =
-                getDropdownOptions(module, settingName)
+            local Name = waypointInput.Text
 
-            if dropdown then
+            if Name ~= "" then
 
-                local _, height =
-                    createDropdown(
+                module:SaveWaypoint(Name)
+
+                waypointInput.Text = ""
+
+                updateWaypoints()
+
+            end
+
+        end)
+
+        settingsHeight += 38 + 6
+
+        updateWaypoints()
+
+    else
+
+        ----------------------------------------------------
+        -- NORMAL SETTINGS
+        ----------------------------------------------------
+
+        for settingName, value in pairs(settings) do
+
+            if settingName ~= "Enabled" then
+
+                local title = prettyName(settingName)
+
+                ------------------------------------------------
+                -- SIMPLE VALUES
+                ------------------------------------------------
+
+                if typeof(value) == "boolean" then
+
+                    createToggle(
                         settingsFrame,
                         module,
                         settingName,
                         title
                     )
 
-                settingsHeight += height + 6
-            end
+                    settingsHeight += 42 + 6
 
-        ----------------------------------------------------
-        -- TYPED SETTINGS
-        ----------------------------------------------------
+                elseif typeof(value) == "number" then
 
-        elseif typeof(value) == "table" then
-
-            local settingType = value.Type
-            local default = value.Default
-
-            if settingType == "Number" then
-
-                if getSetting(module, settingName) == nil then
-                    setSetting(
+                    createNumber(
+                        settingsFrame,
                         module,
                         settingName,
-                        default
+                        title
                     )
-                end
 
-                createNumber(
-                    settingsFrame,
-                    module,
-                    settingName,
-                    title
-                )
+                    settingsHeight += 42 + 6
 
-                settingsHeight += 42 + 6
+                elseif typeof(value) == "Color3" then
 
-            elseif settingType == "Boolean" then
-
-                if getSetting(module, settingName) == nil then
-                    setSetting(
+                    createColor(
+                        settingsFrame,
                         module,
                         settingName,
-                        default
+                        title
                     )
+
+                    settingsHeight += 42 + 6
+
+                elseif typeof(value) == "string" then
+
+                    local dropdown =
+                        getDropdownOptions(module, settingName)
+
+                    if dropdown then
+
+                        local _, height =
+                            createDropdown(
+                                settingsFrame,
+                                module,
+                                settingName,
+                                title
+                            )
+
+                        settingsHeight += height + 6
+
+                    end
+
+                ------------------------------------------------
+                -- TYPED SETTINGS
+                ------------------------------------------------
+
+                elseif typeof(value) == "table" then
+
+                    local settingType = value.Type
+                    local default = value.Default
+
+                    if settingType == "Number" then
+
+                        if getSetting(module, settingName) == nil then
+
+                            setSetting(
+                                module,
+                                settingName,
+                                default
+                            )
+
+                        end
+
+                        createNumber(
+                            settingsFrame,
+                            module,
+                            settingName,
+                            title
+                        )
+
+                        settingsHeight += 42 + 6
+
+                    elseif settingType == "Boolean" then
+
+                        if getSetting(module, settingName) == nil then
+
+                            setSetting(
+                                module,
+                                settingName,
+                                default
+                            )
+
+                        end
+
+                        createToggle(
+                            settingsFrame,
+                            module,
+                            settingName,
+                            title
+                        )
+
+                        settingsHeight += 42 + 6
+
+                    end
+
                 end
 
-                createToggle(
-                    settingsFrame,
-                    module,
-                    settingName,
-                    title
-                )
-
-                settingsHeight += 42 + 6
             end
+
         end
+
     end
+
+    --------------------------------------------------------
+    -- EXPAND / COLLAPSE
+    --------------------------------------------------------
+
+    header.MouseButton1Click:Connect(function()
+
+        settingsFrame.Visible = not settingsFrame.Visible
+
+        if settingsFrame.Visible then
+
+            arrow.Text = "⌄"
+
+            card.Size = UDim2.new(
+                1,
+                0,
+                0,
+                52 + settingsHeight + 12
+            )
+
+            settingsFrame.Size = UDim2.new(
+                1,
+                -24,
+                0,
+                settingsHeight
+            )
+
+        else
+
+            arrow.Text = "›"
+
+            card.Size = UDim2.new(
+                1,
+                0,
+                0,
+                52
+            )
+
+        end
+
+        parent.CanvasSize = UDim2.new(
+            0,
+            0,
+            0,
+            parent.UIListLayout.AbsoluteContentSize.Y + 10
+        )
+
+    end)
+
+    return card
 end
 
     --------------------------------------------------------
