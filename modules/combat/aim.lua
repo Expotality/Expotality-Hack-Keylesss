@@ -5,22 +5,6 @@ Aim.Tab = "Combat"
 
 Aim.Settings = {
     Enabled = false,
-
-    AimPart = "Head",
-    Smoothness = 5,
-    FOV = 100,
-
-    TeamCheck = true,
-    VisibilityCheck = true,
-
-    AimKey = Enum.KeyCode.LeftAlt,
-
-    FOVCircle = true,
-
-    TargetPriority = "Closest",
-    DistanceLimit = 1000,
-
-    AutoShoot = false
 }
 
 function Aim:Enable()
@@ -35,24 +19,10 @@ function Aim:Disable()
 
 end
 
-function Aim:SetSetting(Setting, Value)
-
-    if self.Settings[Setting] == nil then
-        return false
-    end
-
-    self.Settings[Setting] = Value
-
-    return true
-
-end
-
 function Aim:Destroy()
 
     self:Disable()
 
 end
-
-return Aim
 
 return Aim
