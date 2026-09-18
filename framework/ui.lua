@@ -142,62 +142,37 @@ end
 
 local function getDropdownOptions(module, settingName)
 
-    if module and module.GetDropdownOptions then
+    if module.GetDropdownOptions then
 
-        local options =
+        local Options =
             module:GetDropdownOptions(settingName)
 
-        if options then
-            return options
+        if Options then
+            return Options
         end
+
     end
+
 
     if settingName == "BoxStyle" then
 
         return {
+            "Box",
             "Corner",
-            "Full",
         }
-    end
 
-    if settingName == "NameMode" then
+    elseif settingName == "NameMode" then
 
         return {
             "DisplayName",
             "Username",
         }
+
     end
 
-    if settingName == "AimPart" then
-
-        return {
-            "Head",
-            "HumanoidRootPart",
-            "Torso",
-        }
-    end
-
-    if settingName == "TargetPriority" then
-
-        return {
-            "Closest",
-            "Lowest Health",
-            "Highest Health",
-        }
-    end
-
-    if settingName == "AimKey" then
-
-        return {
-            "LeftAlt",
-            "LeftControl",
-            "RightAlt",
-            "RightControl",
-            "MouseButton2",
-        }
-    end
 
     return nil
+
 end
 
 ------------------------------------------------------------
