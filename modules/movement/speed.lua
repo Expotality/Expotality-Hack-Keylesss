@@ -1,52 +1,289 @@
-return {
-    Name = "Speed",
+local Speed = {}
 
-    Type = "Toggle",
+local Players =
+    game:GetService("Players")
 
-    Description = "Changes the player's movement speed.",
+local RunService =
+    game:GetService("RunService")
 
-    Settings = {
-        Enabled = false,
+local LocalPlayer =
+    Players.LocalPlayer
 
-        Speed = {
-            Type = "Number",
-            Default = 500,
-            Value = 500,
-            Minimum = 0,
-            Maximum = math.huge
-        }
-    },
 
-    Enable = function(self)
+Speed.Name =
+    "Speed"
 
-        local settings = self.Settings
+Speed.Tab =
+    "Movement"
 
-        task.spawn(function()
-            while settings.Enabled do
+Speed.Description =
+    "Changes movement speed."
 
-                local player = game.Players.LocalPlayer
-                local character = player.Character
-                local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 
-                if humanoid then
-                    humanoid.WalkSpeed = settings.Speed.Value
+Speed.Settings = {
+
+    Enabled = false,
+
+    Mode = "WalkSpeed",
+
+    Speed = 16
+}
+
+
+local Connection =
+    nil
+
+local OriginalWalkSpeed =
+    nil
+
+
+--------------------------------------------------
+-- CHARACTER
+--------------------------------------------------
+
+local function getCharacter()
+
+    return LocalPlayer.Character
+
+end
+
+
+local function getHumanoid()
+
+    local Character =
+        getCharacter()
+
+    if not Character then
+        return nil
+    end
+
+    return Character:FindFirstChildOfClass(
+        "Humanoid"
+    )
+
+end
+
+
+--------------------------------------------------
+-- ENABLE
+--------------------------------------------------
+
+function Speed:Enable()
+
+    if self.Settings.Enabled then
+        return
+    end
+
+    self.Settings.Enabled =
+        true
+
+
+    local Humanoid =
+        getHumanoid()
+
+
+    if Humanoid then
+
+        OriginalWalkSpeed =
+            Humanoid.WalkSpeed
+
+    end
+
+
+    Connection =
+        RunService.Heartbeat:Connect(
+            function(DeltaTime)
+
+                if not self.Settings.Enabled then
+                    return
                 end
 
-                task.wait()
+
+                local Character =
+                    getCharacter()
+
+                local Humanoid =
+                    getHumanoid()
+
+
+                if not Character
+                    or not Humanoid then
+
+                    return
+
+                end
+
+
+                if self.Settings.Mode
+                    == "WalkSpeed" then
+
+
+                    if OriginalWalkSpeed == nil then
+
+                        OriginalWalkSpeed =
+                            Humanoid.WalkSpeed
+
+                    end
+
+
+                    Humanoid.WalkSpeed =
+                        tonumber(
+                            self.Settings.Speed
+                        ) or 16
+
+
+                elseif self.Settings.Mode
+                    == "TP Speed" then
+
+
+                    local MoveDirection =
+                        Humanoid.MoveDirection
+
+
+                    if MoveDirection.Magnitude > 0 then
+
+                        local SpeedAmount =
+                            tonumber(
+                                self.Settings.Speed
+                            ) or 16
+
+
+                        local Distance =
+                            SpeedAmount
+                            * DeltaTime
+
+
+                        Character:PivotTo(
+                            Character:GetPivot()
+                            + (
+                                MoveDirection
+                                * Distance
+                            )
+                        )
+
+                    end
+
+                end
+
             end
-        end)
+        )
 
-    end,
+end
 
-    Disable = function(self)
 
-        local player = game.Players.LocalPlayer
-        local character = player.Character
-        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+--------------------------------------------------
+-- DISABLE
+--------------------------------------------------
 
-        if humanoid then
-            humanoid.WalkSpeed = 16
+function Speed:Disable()
+
+    self.Settings.Enabled =
+        false
+
+
+    if Connection then
+
+        Connection:Disconnect()
+
+        Connection =
+            nil
+
+    end
+
+
+    local Humanoid =
+        getHumanoid()
+
+
+    if Humanoid then
+
+        Humanoid.WalkSpeed =
+            OriginalWalkSpeed
+            or 16
+
+    end
+
+
+    OriginalWalkSpeed =
+        nil
+
+end
+
+
+--------------------------------------------------
+-- SETTINGS
+--------------------------------------------------
+
+function Speed:SetSetting(
+    Setting,
+    Value
+)
+
+    if self.Settings[Setting] == nil then
+        return false
+    end
+
+
+    self.Settings[Setting] =
+        Value
+
+
+    if Setting == "Mode" then
+
+        local Humanoid =
+            getHumanoid()
+
+
+        if Humanoid
+            and Value == "WalkSpeed" then
+
+            Humanoid.WalkSpeed =
+                tonumber(
+                    self.Settings.Speed
+                ) or 16
+
         end
 
-    end,
-}
+    end
+
+
+    return true
+
+end
+
+
+--------------------------------------------------
+-- DROPDOWNS
+--------------------------------------------------
+
+function Speed:GetDropdownOptions(
+    Setting
+)
+
+    if Setting == "Mode" then
+
+        return {
+            "WalkSpeed",
+            "TP Speed",
+        }
+
+    end
+
+
+    return nil
+
+end
+
+
+--------------------------------------------------
+-- DESTROY
+--------------------------------------------------
+
+function Speed:Destroy()
+
+    self:Disable()
+
+end
+
+
+return Speed
