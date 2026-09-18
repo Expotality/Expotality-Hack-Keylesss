@@ -54,3 +54,5 @@ function Aim:Destroy()
 end
 
 return Aim
+
+return Aim
