@@ -26,7 +26,7 @@ Speed.Settings = {
 
     Mode = "WalkSpeed",
 
-    Speed = 16
+    Speed = 100
 }
 
 
@@ -38,48 +38,21 @@ local OriginalWalkSpeed =
 
 
 --------------------------------------------------
--- CHARACTER
---------------------------------------------------
-
-local function getCharacter()
-
-    return LocalPlayer.Character
-
-end
-
-
-local function getHumanoid()
-
-    local Character =
-        getCharacter()
-
-    if not Character then
-        return nil
-    end
-
-    return Character:FindFirstChildOfClass(
-        "Humanoid"
-    )
-
-end
-
-
---------------------------------------------------
 -- ENABLE
 --------------------------------------------------
 
 function Speed:Enable()
 
-    if self.Settings.Enabled then
-        return
-    end
-
     self.Settings.Enabled =
         true
 
 
+    local Character =
+        LocalPlayer.Character
+
     local Humanoid =
-        getHumanoid()
+        Character
+        and Character:FindFirstChildOfClass("Humanoid")
 
 
     if Humanoid then
@@ -90,8 +63,18 @@ function Speed:Enable()
     end
 
 
+    if Connection then
+
+        Connection:Disconnect()
+
+        Connection =
+            nil
+
+    end
+
+
     Connection =
-        RunService.Heartbeat:Connect(
+        RunService.RenderStepped:Connect(
             function(DeltaTime)
 
                 if not self.Settings.Enabled then
@@ -99,67 +82,68 @@ function Speed:Enable()
                 end
 
 
-                local Character =
-                    getCharacter()
-
-                local Humanoid =
-                    getHumanoid()
+                Character =
+                    LocalPlayer.Character
 
 
-                if not Character
-                    or not Humanoid then
-
+                if not Character then
                     return
-
                 end
+
+
+                Humanoid =
+                    Character:FindFirstChildOfClass(
+                        "Humanoid"
+                    )
+
+
+                if not Humanoid then
+                    return
+                end
+
+
+                local SpeedAmount =
+                    tonumber(
+                        self.Settings.Speed
+                    ) or 100
 
 
                 if self.Settings.Mode
                     == "WalkSpeed" then
 
 
-                    if OriginalWalkSpeed == nil then
-
-                        OriginalWalkSpeed =
-                            Humanoid.WalkSpeed
-
-                    end
-
-
                     Humanoid.WalkSpeed =
-                        tonumber(
-                            self.Settings.Speed
-                        ) or 16
+                        SpeedAmount
 
 
                 elseif self.Settings.Mode
                     == "TP Speed" then
 
 
-                    local MoveDirection =
+                    local Root =
+                        Character:FindFirstChild(
+                            "HumanoidRootPart"
+                        )
+
+
+                    if not Root then
+                        return
+                    end
+
+
+                    local Direction =
                         Humanoid.MoveDirection
 
 
-                    if MoveDirection.Magnitude > 0 then
+                    if Direction.Magnitude > 0 then
 
-                        local SpeedAmount =
-                            tonumber(
-                                self.Settings.Speed
-                            ) or 16
-
-
-                        local Distance =
-                            SpeedAmount
-                            * DeltaTime
-
-
-                        Character:PivotTo(
-                            Character:GetPivot()
+                        Root.CFrame =
+                            Root.CFrame
                             + (
-                                MoveDirection
-                                * Distance
+                                Direction.Unit
+                                * SpeedAmount
+                                * DeltaTime
                             )
-                        )
 
                     end
 
@@ -191,8 +175,12 @@ function Speed:Disable()
     end
 
 
+    local Character =
+        LocalPlayer.Character
+
     local Humanoid =
-        getHumanoid()
+        Character
+        and Character:FindFirstChildOfClass("Humanoid")
 
 
     if Humanoid then
@@ -228,32 +216,13 @@ function Speed:SetSetting(
         Value
 
 
-    if Setting == "Mode" then
-
-        local Humanoid =
-            getHumanoid()
-
-
-        if Humanoid
-            and Value == "WalkSpeed" then
-
-            Humanoid.WalkSpeed =
-                tonumber(
-                    self.Settings.Speed
-                ) or 16
-
-        end
-
-    end
-
-
     return true
 
 end
 
 
 --------------------------------------------------
--- DROPDOWNS
+-- DROPDOWN OPTIONS
 --------------------------------------------------
 
 function Speed:GetDropdownOptions(
