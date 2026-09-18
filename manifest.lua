@@ -69,5 +69,5 @@ return {
     Name = "Aim",
     File = "modules/combat/aim.lua",
     Tab = "Combat"
-    },
+    }
 }
