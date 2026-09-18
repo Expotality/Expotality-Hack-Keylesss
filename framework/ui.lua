@@ -169,6 +169,35 @@ local function getDropdownOptions(module, settingName)
         }
     end
 
+    if settingName == "AimPart" then
+
+        return {
+            "Head",
+            "HumanoidRootPart",
+            "Torso",
+        }
+    end
+
+    if settingName == "TargetPriority" then
+
+        return {
+            "Closest",
+            "Lowest Health",
+            "Highest Health",
+        }
+    end
+
+    if settingName == "AimKey" then
+
+        return {
+            "LeftAlt",
+            "LeftControl",
+            "RightAlt",
+            "RightControl",
+            "MouseButton2",
+        }
+    end
+
     return nil
 end
 
