@@ -3,9 +3,6 @@ local Aim = {}
 local Players =
     game:GetService("Players")
 
-local UserInputService =
-    game:GetService("UserInputService")
-
 local RunService =
     game:GetService("RunService")
 
@@ -34,8 +31,6 @@ Aim.Settings = {
     TeamCheck = true,
     VisibilityCheck = true,
 
-    AimKey = "LeftAlt",
-
     FOVCircle = true,
 
     TargetPriority = "Closest",
@@ -45,15 +40,15 @@ Aim.Settings = {
 }
 
 local RenderConnection = nil
-local InputConnection = nil
 local FOVCircle = nil
-
-local Aiming = false
 
 local function getCharacter(Player)
 
-    return Player
-        and Player.Character
+    if not Player then
+        return nil
+    end
+
+    return Player.Character
 end
 
 local function getHumanoid(Character)
@@ -145,7 +140,7 @@ local function isVisible(
     return Result == nil
 end
 
-local function getScreenPosition(Part)
+local function getScreenDistance(Part)
 
     local Position,
         OnScreen =
@@ -157,21 +152,6 @@ local function getScreenPosition(Part)
         return nil
     end
 
-    return Vector2.new(
-        Position.X,
-        Position.Y
-    )
-end
-
-local function getScreenDistance(Part)
-
-    local ScreenPosition =
-        getScreenPosition(Part)
-
-    if not ScreenPosition then
-        return nil
-    end
-
     local Viewport =
         Camera.ViewportSize
 
@@ -179,6 +159,12 @@ local function getScreenDistance(Part)
         Vector2.new(
             Viewport.X / 2,
             Viewport.Y / 2
+        )
+
+    local ScreenPosition =
+        Vector2.new(
+            Position.X,
+            Position.Y
         )
 
     return (
@@ -229,17 +215,17 @@ local function getTarget()
 
                 if Part then
 
-                    local Distance =
+                    local WorldDistance =
                         getWorldDistance(Part)
 
-                    if Distance <=
+                    if WorldDistance <=
                         Aim.Settings.DistanceLimit then
 
-                        local FOVDistance =
+                        local ScreenDistance =
                             getScreenDistance(Part)
 
-                        if FOVDistance
-                            and FOVDistance <=
+                        if ScreenDistance
+                            and ScreenDistance <=
                                 Aim.Settings.FOV then
 
                             if isVisible(
@@ -295,11 +281,11 @@ local function getTarget()
 
                                 else
 
-                                    if FOVDistance <
+                                    if ScreenDistance <
                                         BestValue then
 
                                         BestValue =
-                                            FOVDistance
+                                            ScreenDistance
 
                                         BestTarget =
                                             Part
@@ -322,12 +308,12 @@ local function aimAt(Part)
         return
     end
 
-    local Current =
+    local CurrentCFrame =
         Camera.CFrame
 
-    local Target =
+    local TargetCFrame =
         CFrame.lookAt(
-            Current.Position,
+            CurrentCFrame.Position,
             Part.Position
         )
 
@@ -347,8 +333,8 @@ local function aimAt(Part)
         )
 
     Camera.CFrame =
-        Current:Lerp(
-            Target,
+        CurrentCFrame:Lerp(
+            TargetCFrame,
             Alpha
         )
 end
@@ -364,10 +350,15 @@ local function createFOVCircle()
         return
     end
 
+    if not Drawing then
+        return
+    end
+
     FOVCircle =
         Drawing.new("Circle")
 
     FOVCircle.Visible = true
+
     FOVCircle.Radius =
         Aim.Settings.FOV
 
@@ -402,32 +393,8 @@ local function updateFOVCircle()
         Aim.Settings.FOV
 
     FOVCircle.Visible =
-        Aim.Settings.FOVCircle
-        and Aim.Settings.Enabled
-end
-
-local function getAimKey()
-
-    local Key =
-        Aim.Settings.AimKey
-
-    if Key == "LeftAlt" then
-        return Enum.KeyCode.LeftAlt
-    end
-
-    if Key == "LeftControl" then
-        return Enum.KeyCode.LeftControl
-    end
-
-    if Key == "RightAlt" then
-        return Enum.KeyCode.RightAlt
-    end
-
-    if Key == "RightControl" then
-        return Enum.KeyCode.RightControl
-    end
-
-    return Enum.UserInputType.MouseButton2
+        Aim.Settings.Enabled
+        and Aim.Settings.FOVCircle
 end
 
 function Aim:Enable()
@@ -440,36 +407,20 @@ function Aim:Enable()
 
     createFOVCircle()
 
-    InputConnection =
-        UserInputService.InputBegan:Connect(
-            function(Input, Processed)
-
-                if Processed then
-                    return
-                end
-
-                local Key =
-                    getAimKey()
-
-                if Input.KeyCode == Key
-                    or Input.UserInputType == Key then
-
-                    Aiming = true
-                end
-            end
-        )
+    if RenderConnection then
+        RenderConnection:Disconnect()
+        RenderConnection = nil
+    end
 
     RenderConnection =
         RunService.RenderStepped:Connect(
             function()
 
-                updateFOVCircle()
-
-                if not self.Settings.Enabled
-                    or not Aiming then
-
+                if not self.Settings.Enabled then
                     return
                 end
+
+                updateFOVCircle()
 
                 local Target =
                     getTarget()
@@ -484,16 +435,10 @@ end
 function Aim:Disable()
 
     self.Settings.Enabled = false
-    Aiming = false
 
     if RenderConnection then
         RenderConnection:Disconnect()
         RenderConnection = nil
-    end
-
-    if InputConnection then
-        InputConnection:Disconnect()
-        InputConnection = nil
     end
 
     if FOVCircle then
@@ -515,13 +460,7 @@ function Aim:SetSetting(
         Value
 
     if Setting == "FOVCircle" then
-
         createFOVCircle()
-
-    elseif Setting == "AimKey" then
-
-        Aiming = false
-
     end
 
     return true
@@ -546,17 +485,6 @@ function Aim:GetDropdownOptions(
             "Closest",
             "Lowest Health",
             "Highest Health",
-        }
-    end
-
-    if Setting == "AimKey" then
-
-        return {
-            "LeftAlt",
-            "LeftControl",
-            "RightAlt",
-            "RightControl",
-            "MouseButton2",
         }
     end
 
