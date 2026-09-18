@@ -3,8 +3,27 @@ local Aim = {}
 Aim.Name = "Aim"
 Aim.Tab = "Combat"
 
+Aim.Description =
+    "Automatically aims at valid targets."
+
 Aim.Settings = {
     Enabled = false,
+
+    AimPart = "Head",
+    Smoothness = 5,
+    FOV = 100,
+
+    TeamCheck = true,
+    VisibilityCheck = true,
+
+    AimKey = "LeftAlt",
+
+    FOVCircle = true,
+
+    TargetPriority = "Closest",
+    DistanceLimit = 1000,
+
+    AutoShoot = false
 }
 
 function Aim:Enable()
@@ -16,6 +35,18 @@ end
 function Aim:Disable()
 
     self.Settings.Enabled = false
+
+end
+
+function Aim:SetSetting(Setting, Value)
+
+    if self.Settings[Setting] == nil then
+        return false
+    end
+
+    self.Settings[Setting] = Value
+
+    return true
 
 end
 
