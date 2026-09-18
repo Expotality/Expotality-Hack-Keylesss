@@ -64,4 +64,9 @@ return {
     File = "modules/events/anti_afk.lua",
     Tab = "Events"
     },
+    {
+    Name = "Aim",
+    File = "modules/combat/aim.lua",
+    Tab = "Combat"
+    }
 }
