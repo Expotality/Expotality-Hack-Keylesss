@@ -31,6 +31,7 @@ local ListeningForKeybind = nil
 local TAB_ORDER = {
     "Visuals",
     "Movement",
+    "Combat",
     "Events",
     "Customization",
     "Utilities"
