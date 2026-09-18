@@ -15,41 +15,55 @@ local LocalPlayer =
 local Camera =
     Workspace.CurrentCamera
 
+
 Aim.Name = "Aim"
 Aim.Tab = "Combat"
 
 Aim.Description =
-    "Automatically aims at valid targets."
+    "Targeting system for game testing."
+
 
 Aim.Settings = {
+
     Enabled = false,
 
     AimPart = "Head",
-    Smoothness = 5,
-    FOV = 100,
+
+    Smoothness = 1,
+
+    FOV = 150,
 
     TeamCheck = true,
+
     VisibilityCheck = true,
 
     FOVCircle = true,
 
     TargetPriority = "Closest",
+
     DistanceLimit = 1000,
 
     AutoShoot = false
 }
 
-local RenderConnection = nil
+
+local Connection = nil
+local Target = nil
+local FOVGui = nil
 local FOVCircle = nil
+
+
+--------------------------------------------------
+-- CHARACTER
+--------------------------------------------------
 
 local function getCharacter(Player)
 
-    if not Player then
-        return nil
-    end
+    return Player
+        and Player.Character
 
-    return Player.Character
 end
+
 
 local function getHumanoid(Character)
 
@@ -60,7 +74,13 @@ local function getHumanoid(Character)
     return Character:FindFirstChildOfClass(
         "Humanoid"
     )
+
 end
+
+
+--------------------------------------------------
+-- AIM PART
+--------------------------------------------------
 
 local function getAimPart(Character)
 
@@ -68,49 +88,50 @@ local function getAimPart(Character)
         return nil
     end
 
-    local Part =
-        Character:FindFirstChild(
-            Aim.Settings.AimPart
-        )
+    return Character:FindFirstChild(
+        Aim.Settings.AimPart
+    )
+    or Character:FindFirstChild("Head")
+    or Character:FindFirstChild("HumanoidRootPart")
 
-    if Part then
-        return Part
-    end
-
-    return Character:FindFirstChild("Head")
-        or Character:FindFirstChild("HumanoidRootPart")
-        or Character:FindFirstChild("Torso")
 end
 
-local function isAlive(Character)
 
-    local Humanoid =
-        getHumanoid(Character)
+--------------------------------------------------
+-- TEAM CHECK
+--------------------------------------------------
 
-    return Humanoid
-        and Humanoid.Health > 0
-end
-
-local function isTeammate(Player)
+local function validTeam(Player)
 
     if not Aim.Settings.TeamCheck then
-        return false
+        return true
     end
 
     if not LocalPlayer.Team then
-        return false
+        return true
     end
 
-    return Player.Team == LocalPlayer.Team
+    if not Player.Team then
+        return true
+    end
+
+    return Player.Team ~= LocalPlayer.Team
+
 end
 
-local function isVisible(
-    Part,
-    Character
-)
+
+--------------------------------------------------
+-- VISIBILITY CHECK
+--------------------------------------------------
+
+local function isVisible(Character, Part)
 
     if not Aim.Settings.VisibilityCheck then
         return true
+    end
+
+    if not Character or not Part then
+        return false
     end
 
     local Origin =
@@ -126,8 +147,7 @@ local function isVisible(
         Enum.RaycastFilterType.Exclude
 
     Parameters.FilterDescendantsInstances = {
-        LocalPlayer.Character,
-        Character
+        LocalPlayer.Character
     }
 
     local Result =
@@ -137,20 +157,63 @@ local function isVisible(
             Parameters
         )
 
-    return Result == nil
+    if not Result then
+        return true
+    end
+
+    return Result.Instance:IsDescendantOf(
+        Character
+    )
+
 end
 
-local function getScreenDistance(Part)
 
-    local Position,
-        OnScreen =
-        Camera:WorldToViewportPoint(
-            Part.Position
-        )
+--------------------------------------------------
+-- VALID TARGET
+--------------------------------------------------
 
-    if not OnScreen then
-        return nil
+local function validTarget(Player)
+
+    if Player == LocalPlayer then
+        return false
     end
+
+    if not validTeam(Player) then
+        return false
+    end
+
+    local Character =
+        getCharacter(Player)
+
+    if not Character then
+        return false
+    end
+
+    local Humanoid =
+        getHumanoid(Character)
+
+    if not Humanoid then
+        return false
+    end
+
+    if Humanoid.Health <= 0 then
+        return false
+    end
+
+    return true
+
+end
+
+
+--------------------------------------------------
+-- TARGET SELECTION
+--------------------------------------------------
+
+local function getTarget()
+
+    local Best = nil
+
+    local BestScore = math.huge
 
     local Viewport =
         Camera.ViewportSize
@@ -161,136 +224,101 @@ local function getScreenDistance(Part)
             Viewport.Y / 2
         )
 
-    local ScreenPosition =
-        Vector2.new(
-            Position.X,
-            Position.Y
-        )
-
-    return (
-        ScreenPosition - Center
-    ).Magnitude
-end
-
-local function getWorldDistance(Part)
-
-    if not LocalPlayer.Character then
-        return math.huge
-    end
-
-    local Root =
-        LocalPlayer.Character:FindFirstChild(
-            "HumanoidRootPart"
-        )
-
-    if not Root then
-        return math.huge
-    end
-
-    return (
-        Root.Position -
-        Part.Position
-    ).Magnitude
-end
-
-local function getTarget()
-
-    local BestTarget = nil
-    local BestValue = math.huge
 
     for _, Player in
         ipairs(Players:GetPlayers()) do
 
-        if Player ~= LocalPlayer
-            and not isTeammate(Player) then
+        if validTarget(Player) then
 
             local Character =
                 getCharacter(Player)
 
-            if Character
-                and isAlive(Character) then
+            local Humanoid =
+                getHumanoid(Character)
 
-                local Part =
-                    getAimPart(Character)
+            local Part =
+                getAimPart(Character)
 
-                if Part then
 
-                    local WorldDistance =
-                        getWorldDistance(Part)
+            if Part then
 
-                    if WorldDistance <=
-                        Aim.Settings.DistanceLimit then
+                local WorldDistance =
+                    (
+                        Camera.CFrame.Position
+                        - Part.Position
+                    ).Magnitude
 
-                        local ScreenDistance =
-                            getScreenDistance(Part)
 
-                        if ScreenDistance
-                            and ScreenDistance <=
-                                Aim.Settings.FOV then
+                if WorldDistance <=
+                    Aim.Settings.DistanceLimit then
+
+
+                    local ScreenPosition,
+                        OnScreen =
+                        Camera:WorldToViewportPoint(
+                            Part.Position
+                        )
+
+
+                    if OnScreen then
+
+                        local ScreenPoint =
+                            Vector2.new(
+                                ScreenPosition.X,
+                                ScreenPosition.Y
+                            )
+
+                        local FOVDistance =
+                            (
+                                ScreenPoint
+                                - Center
+                            ).Magnitude
+
+
+                        if FOVDistance <=
+                            Aim.Settings.FOV then
+
 
                             if isVisible(
-                                Part,
-                                Character
+                                Character,
+                                Part
                             ) then
 
-                                local Priority =
-                                    Aim.Settings.TargetPriority
 
-                                if Priority ==
-                                    "Lowest Health" then
+                                local Score
 
-                                    local Humanoid =
-                                        getHumanoid(
-                                            Character
-                                        )
 
-                                    local Health =
+                                if Aim.Settings.TargetPriority
+                                    == "Lowest Health" then
+
+                                    Score =
                                         Humanoid.Health
 
-                                    if Health <
-                                        BestValue then
+                                elseif Aim.Settings.TargetPriority
+                                    == "Highest Health" then
 
-                                        BestValue =
-                                            Health
-
-                                        BestTarget =
-                                            Part
-                                    end
-
-                                elseif Priority ==
-                                    "Highest Health" then
-
-                                    local Humanoid =
-                                        getHumanoid(
-                                            Character
-                                        )
-
-                                    local Health =
-                                        Humanoid.Health
-
-                                    if BestTarget == nil
-                                        or Health >
-                                            BestValue then
-
-                                        BestValue =
-                                            Health
-
-                                        BestTarget =
-                                            Part
-                                    end
+                                    Score =
+                                        -Humanoid.Health
 
                                 else
 
-                                    if ScreenDistance <
-                                        BestValue then
+                                    Score =
+                                        FOVDistance
 
-                                        BestValue =
-                                            ScreenDistance
-
-                                        BestTarget =
-                                            Part
-                                    end
                                 end
+
+
+                                if Score <
+                                    BestScore then
+
+                                    BestScore =
+                                        Score
+
+                                    Best =
+                                        Part
+
+                                end
+
                             end
                         end
                     end
@@ -299,23 +327,45 @@ local function getTarget()
         end
     end
 
-    return BestTarget
+
+    return Best
+
 end
 
-local function aimAt(Part)
+
+--------------------------------------------------
+-- CAMERA AIM
+--------------------------------------------------
+
+local function aimCameraAt(
+    Part,
+    DeltaTime
+)
 
     if not Part then
         return
     end
 
+    if not Camera then
+        Camera =
+            Workspace.CurrentCamera
+    end
+
+    if not Camera then
+        return
+    end
+
+
     local CurrentCFrame =
         Camera.CFrame
+
 
     local TargetCFrame =
         CFrame.lookAt(
             CurrentCFrame.Position,
             Part.Position
         )
+
 
     local Smoothness =
         math.max(
@@ -325,54 +375,140 @@ local function aimAt(Part)
             1
         )
 
-    local Alpha =
+
+    if Smoothness <= 1 then
+
+        Camera.CFrame =
+            TargetCFrame
+
+        return
+
+    end
+
+
+    local Speed =
         math.clamp(
-            1 / Smoothness,
-            0.01,
+            1 - math.exp(
+                -20
+                * DeltaTime
+                / Smoothness
+            ),
+            0,
             1
         )
+
 
     Camera.CFrame =
         CurrentCFrame:Lerp(
             TargetCFrame,
-            Alpha
+            Speed
         )
+
 end
+
+
+--------------------------------------------------
+-- FOV CIRCLE
+--------------------------------------------------
 
 local function createFOVCircle()
 
-    if FOVCircle then
-        FOVCircle:Remove()
-        FOVCircle = nil
+    if FOVGui then
+        FOVGui:Destroy()
     end
 
-    if not Aim.Settings.FOVCircle then
-        return
-    end
+    FOVGui = Instance.new(
+        "ScreenGui"
+    )
 
-    if not Drawing then
-        return
-    end
+    FOVGui.Name =
+        "AimFOV"
 
-    FOVCircle =
-        Drawing.new("Circle")
+    FOVGui.IgnoreGuiInset =
+        true
 
-    FOVCircle.Visible = true
+    FOVGui.ResetOnSpawn =
+        false
 
-    FOVCircle.Radius =
-        Aim.Settings.FOV
+    FOVGui.DisplayOrder =
+        999
 
-    FOVCircle.Thickness = 1
-    FOVCircle.Filled = false
-    FOVCircle.Transparency = 1
+    FOVGui.Parent =
+        LocalPlayer:WaitForChild(
+            "PlayerGui"
+        )
 
-    FOVCircle.Color =
+
+    FOVCircle = Instance.new(
+        "Frame"
+    )
+
+    FOVCircle.Name =
+        "Circle"
+
+    FOVCircle.BackgroundTransparency =
+        1
+
+    FOVCircle.AnchorPoint =
+        Vector2.new(
+            0.5,
+            0.5
+        )
+
+    FOVCircle.Position =
+        UDim2.fromScale(
+            0.5,
+            0.5
+        )
+
+    FOVCircle.Size =
+        UDim2.fromOffset(
+            Aim.Settings.FOV * 2,
+            Aim.Settings.FOV * 2
+        )
+
+    FOVCircle.Parent =
+        FOVGui
+
+
+    local Corner =
+        Instance.new(
+            "UICorner"
+        )
+
+    Corner.CornerRadius =
+        UDim.new(
+            1,
+            0
+        )
+
+    Corner.Parent =
+        FOVCircle
+
+
+    local Stroke =
+        Instance.new(
+            "UIStroke"
+        )
+
+    Stroke.Thickness =
+        1.5
+
+    Stroke.Transparency =
+        0
+
+    Stroke.Color =
         Color3.fromRGB(
             255,
             255,
             255
         )
+
+    Stroke.Parent =
+        FOVCircle
+
 end
+
 
 local function updateFOVCircle()
 
@@ -380,22 +516,39 @@ local function updateFOVCircle()
         return
     end
 
-    local Viewport =
-        Camera.ViewportSize
-
-    FOVCircle.Position =
-        Vector2.new(
-            Viewport.X / 2,
-            Viewport.Y / 2
+    FOVCircle.Size =
+        UDim2.fromOffset(
+            Aim.Settings.FOV * 2,
+            Aim.Settings.FOV * 2
         )
-
-    FOVCircle.Radius =
-        Aim.Settings.FOV
 
     FOVCircle.Visible =
         Aim.Settings.Enabled
         and Aim.Settings.FOVCircle
+
 end
+
+
+local function destroyFOVCircle()
+
+    if FOVGui then
+
+        FOVGui:Destroy()
+
+        FOVGui =
+            nil
+
+        FOVCircle =
+            nil
+
+    end
+
+end
+
+
+--------------------------------------------------
+-- ENABLE
+--------------------------------------------------
 
 function Aim:Enable()
 
@@ -403,49 +556,77 @@ function Aim:Enable()
         return
     end
 
-    self.Settings.Enabled = true
+    self.Settings.Enabled =
+        true
+
 
     createFOVCircle()
 
-    if RenderConnection then
-        RenderConnection:Disconnect()
-        RenderConnection = nil
-    end
+    updateFOVCircle()
 
-    RenderConnection =
+
+    Connection =
         RunService.RenderStepped:Connect(
-            function()
+            function(DeltaTime)
 
                 if not self.Settings.Enabled then
                     return
                 end
 
-                updateFOVCircle()
 
-                local Target =
+                Target =
                     getTarget()
 
+
+                updateFOVCircle()
+
+
                 if Target then
-                    aimAt(Target)
+
+                    aimCameraAt(
+                        Target,
+                        DeltaTime
+                    )
+
                 end
+
             end
         )
+
 end
+
+
+--------------------------------------------------
+-- DISABLE
+--------------------------------------------------
 
 function Aim:Disable()
 
-    self.Settings.Enabled = false
+    self.Settings.Enabled =
+        false
 
-    if RenderConnection then
-        RenderConnection:Disconnect()
-        RenderConnection = nil
+    Target =
+        nil
+
+
+    if Connection then
+
+        Connection:Disconnect()
+
+        Connection =
+            nil
+
     end
 
-    if FOVCircle then
-        FOVCircle:Remove()
-        FOVCircle = nil
-    end
+
+    destroyFOVCircle()
+
 end
+
+
+--------------------------------------------------
+-- SETTINGS
+--------------------------------------------------
 
 function Aim:SetSetting(
     Setting,
@@ -456,15 +637,38 @@ function Aim:SetSetting(
         return false
     end
 
+
     self.Settings[Setting] =
         Value
 
-    if Setting == "FOVCircle" then
-        createFOVCircle()
+
+    if Setting == "FOV"
+        or Setting == "FOVCircle" then
+
+        updateFOVCircle()
+
     end
 
+
     return true
+
 end
+
+
+--------------------------------------------------
+-- GET TARGET
+--------------------------------------------------
+
+function Aim:GetTarget()
+
+    return Target
+
+end
+
+
+--------------------------------------------------
+-- DROPDOWNS
+--------------------------------------------------
 
 function Aim:GetDropdownOptions(
     Setting
@@ -477,7 +681,9 @@ function Aim:GetDropdownOptions(
             "HumanoidRootPart",
             "Torso",
         }
+
     end
+
 
     if Setting == "TargetPriority" then
 
@@ -486,15 +692,24 @@ function Aim:GetDropdownOptions(
             "Lowest Health",
             "Highest Health",
         }
+
     end
 
+
     return nil
+
 end
+
+
+--------------------------------------------------
+-- DESTROY
+--------------------------------------------------
 
 function Aim:Destroy()
 
     self:Disable()
 
 end
+
 
 return Aim
