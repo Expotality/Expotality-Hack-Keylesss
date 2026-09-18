@@ -314,7 +314,7 @@ local function createNumber(parent, module, settingName, title)
     local row = create("Frame", {
         BackgroundColor3 = ElementBackground,
         BorderSizePixel = 0,
-        Size = UDim2.new(1, 0, 0, 42),
+        Size = UDim2.new(1, 0, 0, 58),
         ZIndex = 5,
         Parent = parent,
     })
@@ -328,53 +328,210 @@ local function createNumber(parent, module, settingName, title)
         TextSize = 13,
         Font = Enum.Font.GothamMedium,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Size = UDim2.new(1, -100, 1, 0),
-        Position = UDim2.fromOffset(14, 0),
+        Size = UDim2.new(0, 150, 0, 24),
+        Position = UDim2.fromOffset(14, 5),
         ZIndex = 6,
         Parent = row,
     })
 
-    local input = create("TextBox", {
-        BackgroundColor3 = Color3.fromRGB(18, 19, 24),
-        BorderSizePixel = 0,
+    local valueLabel = create("TextLabel", {
+        BackgroundTransparency = 1,
         Text = tostring(
             getSetting(module, settingName)
         ),
-        TextColor3 = TextColor,
-        TextSize = 12,
+        TextColor3 = SubTextColor,
+        TextSize = 11,
         Font = Enum.Font.Gotham,
-        ClearTextOnFocus = false,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        Active = true,
-        Size = UDim2.fromOffset(65, 28),
-        Position = UDim2.new(1, -79, 0.5, -14),
-        ZIndex = 7,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        Size = UDim2.fromOffset(55, 20),
+        Position = UDim2.new(1, -69, 0, 6),
+        ZIndex = 6,
         Parent = row,
     })
 
-    corner(input, 5)
+    local slider = create("Frame", {
+        BackgroundColor3 = Color3.fromRGB(18, 19, 24),
+        BorderSizePixel = 0,
+        Size = UDim2.new(1, -28, 0, 6),
+        Position = UDim2.fromOffset(14, 38),
+        ZIndex = 6,
+        Parent = row,
+    })
 
-    input.FocusLost:Connect(function()
+    corner(slider, 3)
 
-        local value = tonumber(input.Text)
+    local fill = create("Frame", {
+        BackgroundColor3 = Accent,
+        BorderSizePixel = 0,
+        Size = UDim2.new(0, 0, 1, 0),
+        ZIndex = 7,
+        Parent = slider,
+    })
 
-        if value then
+    corner(fill, 3)
 
-            setSetting(
-                module,
-                settingName,
-                value
+    local knob = create("Frame", {
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BorderSizePixel = 0,
+        Size = UDim2.fromOffset(12, 12),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        ZIndex = 8,
+        Parent = slider,
+    })
+
+    corner(knob, 6)
+
+    local Min
+    local Max
+
+    if settingName == "Smoothness" then
+
+        Min = 1
+        Max = 20
+
+    elseif settingName == "FOV" then
+
+        Min = 25
+        Max = 500
+
+    elseif settingName == "DistanceLimit" then
+
+        Min = 50
+        Max = 5000
+
+    else
+
+        Min = 0
+        Max = 100
+
+    end
+
+    local dragging = false
+
+    local function updateSlider(mouseX)
+
+        local sliderPosition =
+            slider.AbsolutePosition.X
+
+        local sliderSize =
+            slider.AbsoluteSize.X
+
+        local percent =
+            math.clamp(
+                (mouseX - sliderPosition)
+                    / sliderSize,
+                0,
+                1
             )
 
-            input.Text = tostring(value)
+        local value =
+            Min + (Max - Min) * percent
 
-        else
+        value =
+            math.floor(value + 0.5)
 
-            input.Text = tostring(
-                getSetting(module, settingName)
+        setSetting(
+            module,
+            settingName,
+            value
+        )
+
+        valueLabel.Text =
+            tostring(value)
+
+        fill.Size =
+            UDim2.new(
+                percent,
+                0,
+                1,
+                0
+            )
+
+        knob.Position =
+            UDim2.new(
+                percent,
+                0,
+                0.5,
+                0
+            )
+    end
+
+    local function updateFromValue()
+
+        local value =
+            tonumber(
+                getSetting(
+                    module,
+                    settingName
+                )
+            ) or Min
+
+        value =
+            math.clamp(
+                value,
+                Min,
+                Max
+            )
+
+        local percent =
+            (value - Min)
+                / (Max - Min)
+
+        valueLabel.Text =
+            tostring(value)
+
+        fill.Size =
+            UDim2.new(
+                percent,
+                0,
+                1,
+                0
+            )
+
+        knob.Position =
+            UDim2.new(
+                percent,
+                0,
+                0.5,
+                0
+            )
+    end
+
+    slider.InputBegan:Connect(function(input)
+
+        if input.UserInputType ==
+            Enum.UserInputType.MouseButton1 then
+
+            dragging = true
+
+            updateSlider(
+                input.Position.X
             )
         end
     end)
+
+    slider.InputEnded:Connect(function(input)
+
+        if input.UserInputType ==
+            Enum.UserInputType.MouseButton1 then
+
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+
+        if dragging
+            and input.UserInputType ==
+                Enum.UserInputType.MouseMovement then
+
+            updateSlider(
+                input.Position.X
+            )
+        end
+    end)
+
+    updateFromValue()
 
     return row
 end
