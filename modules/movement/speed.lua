@@ -107,12 +107,7 @@ function Speed:Enable()
                 local SpeedAmount =
                     tonumber(
                         self.Settings.Speed
-                    )
-
-
-                if not SpeedAmount then
-                    SpeedAmount = 100
-                end
+                    ) or 100
 
 
                 --------------------------------------------------
@@ -151,16 +146,17 @@ function Speed:Enable()
 
                     if Direction.Magnitude > 0 then
 
-                        local Offset =
-                            Direction.Unit
-                            * SpeedAmount
+                        local Distance =
+                            SpeedAmount
                             * DeltaTime
 
 
-                        Character:PivotTo(
-                            Character:GetPivot()
-                            + Offset
-                        )
+                        Root.CFrame =
+                            Root.CFrame
+                            + (
+                                Direction.Unit
+                                * Distance
+                            )
 
                     end
 
