@@ -47,7 +47,6 @@ Aim.Settings = {
 }
 
 
-local Connection = nil
 local Target = nil
 local FOVGui = nil
 local FOVCircle = nil
@@ -124,7 +123,10 @@ end
 -- VISIBILITY CHECK
 --------------------------------------------------
 
-local function isVisible(Character, Part)
+local function isVisible(
+    Character,
+    Part
+)
 
     if not Aim.Settings.VisibilityCheck then
         return true
@@ -134,11 +136,21 @@ local function isVisible(Character, Part)
         return false
     end
 
+
+    Camera =
+        Workspace.CurrentCamera
+
+    if not Camera then
+        return false
+    end
+
+
     local Origin =
         Camera.CFrame.Position
 
     local Direction =
         Part.Position - Origin
+
 
     local Parameters =
         RaycastParams.new()
@@ -150,6 +162,7 @@ local function isVisible(Character, Part)
         LocalPlayer.Character
     }
 
+
     local Result =
         Workspace:Raycast(
             Origin,
@@ -157,9 +170,11 @@ local function isVisible(Character, Part)
             Parameters
         )
 
+
     if not Result then
         return true
     end
+
 
     return Result.Instance:IsDescendantOf(
         Character
@@ -178,9 +193,11 @@ local function validTarget(Player)
         return false
     end
 
+
     if not validTeam(Player) then
         return false
     end
+
 
     local Character =
         getCharacter(Player)
@@ -189,6 +206,7 @@ local function validTarget(Player)
         return false
     end
 
+
     local Humanoid =
         getHumanoid(Character)
 
@@ -196,9 +214,11 @@ local function validTarget(Player)
         return false
     end
 
+
     if Humanoid.Health <= 0 then
         return false
     end
+
 
     return true
 
@@ -211,12 +231,23 @@ end
 
 local function getTarget()
 
+    Camera =
+        Workspace.CurrentCamera
+
+    if not Camera then
+        return nil
+    end
+
+
     local Best = nil
 
-    local BestScore = math.huge
+    local BestScore =
+        math.huge
+
 
     local Viewport =
         Camera.ViewportSize
+
 
     local Center =
         Vector2.new(
@@ -227,6 +258,7 @@ local function getTarget()
 
     for _, Player in
         ipairs(Players:GetPlayers()) do
+
 
         if validTarget(Player) then
 
@@ -268,6 +300,7 @@ local function getTarget()
                                 ScreenPosition.Y
                             )
 
+
                         local FOVDistance =
                             (
                                 ScreenPoint
@@ -294,11 +327,13 @@ local function getTarget()
                                     Score =
                                         Humanoid.Health
 
+
                                 elseif Aim.Settings.TargetPriority
                                     == "Highest Health" then
 
                                     Score =
                                         -Humanoid.Health
+
 
                                 else
 
@@ -346,10 +381,9 @@ local function aimCameraAt(
         return
     end
 
-    if not Camera then
-        Camera =
-            Workspace.CurrentCamera
-    end
+
+    Camera =
+        Workspace.CurrentCamera
 
     if not Camera then
         return
@@ -417,21 +451,28 @@ local function createFOVCircle()
         FOVGui:Destroy()
     end
 
-    FOVGui = Instance.new(
-        "ScreenGui"
-    )
+
+    FOVGui =
+        Instance.new(
+            "ScreenGui"
+        )
+
 
     FOVGui.Name =
         "AimFOV"
 
+
     FOVGui.IgnoreGuiInset =
         true
+
 
     FOVGui.ResetOnSpawn =
         false
 
+
     FOVGui.DisplayOrder =
         999
+
 
     FOVGui.Parent =
         LocalPlayer:WaitForChild(
@@ -439,15 +480,19 @@ local function createFOVCircle()
         )
 
 
-    FOVCircle = Instance.new(
-        "Frame"
-    )
+    FOVCircle =
+        Instance.new(
+            "Frame"
+        )
+
 
     FOVCircle.Name =
         "Circle"
 
+
     FOVCircle.BackgroundTransparency =
         1
+
 
     FOVCircle.AnchorPoint =
         Vector2.new(
@@ -455,17 +500,20 @@ local function createFOVCircle()
             0.5
         )
 
+
     FOVCircle.Position =
         UDim2.fromScale(
             0.5,
             0.5
         )
 
+
     FOVCircle.Size =
         UDim2.fromOffset(
             Aim.Settings.FOV * 2,
             Aim.Settings.FOV * 2
         )
+
 
     FOVCircle.Parent =
         FOVGui
@@ -476,11 +524,13 @@ local function createFOVCircle()
             "UICorner"
         )
 
+
     Corner.CornerRadius =
         UDim.new(
             1,
             0
         )
+
 
     Corner.Parent =
         FOVCircle
@@ -491,11 +541,14 @@ local function createFOVCircle()
             "UIStroke"
         )
 
+
     Stroke.Thickness =
         1.5
 
+
     Stroke.Transparency =
         0
+
 
     Stroke.Color =
         Color3.fromRGB(
@@ -503,6 +556,7 @@ local function createFOVCircle()
             255,
             255
         )
+
 
     Stroke.Parent =
         FOVCircle
@@ -516,11 +570,13 @@ local function updateFOVCircle()
         return
     end
 
+
     FOVCircle.Size =
         UDim2.fromOffset(
             Aim.Settings.FOV * 2,
             Aim.Settings.FOV * 2
         )
+
 
     FOVCircle.Visible =
         Aim.Settings.Enabled
@@ -556,6 +612,7 @@ function Aim:Enable()
         return
     end
 
+
     self.Settings.Enabled =
         true
 
@@ -565,33 +622,43 @@ function Aim:Enable()
     updateFOVCircle()
 
 
-    Connection =
-        RunService.RenderStepped:Connect(
-            function(DeltaTime)
-
-                if not self.Settings.Enabled then
-                    return
-                end
+    RunService:BindToRenderStep(
+        "AimCamera",
+        Enum.RenderPriority.Camera.Value + 1,
+        function(DeltaTime)
 
 
-                Target =
-                    getTarget()
+            if not self.Settings.Enabled then
+                return
+            end
 
 
-                updateFOVCircle()
+            Camera =
+                Workspace.CurrentCamera
+
+            if not Camera then
+                return
+            end
 
 
-                if Target then
+            Target =
+                getTarget()
 
-                    aimCameraAt(
-                        Target,
-                        DeltaTime
-                    )
 
-                end
+            updateFOVCircle()
+
+
+            if Target then
+
+                aimCameraAt(
+                    Target,
+                    DeltaTime
+                )
 
             end
-        )
+
+        end
+    )
 
 end
 
@@ -605,18 +672,14 @@ function Aim:Disable()
     self.Settings.Enabled =
         false
 
+
     Target =
         nil
 
 
-    if Connection then
-
-        Connection:Disconnect()
-
-        Connection =
-            nil
-
-    end
+    RunService:UnbindFromRenderStep(
+        "AimCamera"
+    )
 
 
     destroyFOVCircle()
