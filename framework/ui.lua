@@ -28,12 +28,13 @@ local TabButtons = {}
 local Keybinds = {}
 local ListeningForKeybind = nil
 
-local TAB_ORDER = {
+local TabOrder = {
     "Visuals",
     "Movement",
+    "Combat",
     "Events",
     "Customization",
-    "Utilities",
+    "Utilities"
 }
 
 ------------------------------------------------------------
